@@ -1,0 +1,88 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model EventLogs {
+  id         Int       @id @default(autoincrement())
+  eventType  String    @db.VarChar(100)
+  entityType String?   @db.VarChar(100)
+  entityId   Int?
+  userId     Int?
+  createdAt  DateTime? @default(now()) @db.Timestamp(6)
+  metadata   String?
+  Users      Users?    @relation(fields: [userId], references: [id], onUpdate: NoAction)
+}
+
+model Halls {
+  id          Int        @id @default(autoincrement())
+  name        String     @db.VarChar(50)
+  rows        Int
+  seatsPerRow Int
+  Seats       Seats[]
+  Sessions    Sessions[]
+  Tickets     Tickets[]
+}
+
+model Movies {
+  id          Int        @id @default(autoincrement())
+  title       String     @db.VarChar(50)
+  description String?
+  duration    Int
+  createdAt   DateTime?  @default(now()) @db.Timestamp(6)
+  updatedAt   DateTime?  @default(now()) @db.Timestamp(6)
+  Sessions    Sessions[]
+}
+
+model Seats {
+  id         Int       @id @default(autoincrement())
+  hallId     Int
+  row        Int
+  seatNumber Int
+  Halls      Halls     @relation(fields: [hallId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  Tickets    Tickets[]
+}
+
+model Sessions {
+  id        Int       @id @default(autoincrement())
+  movieId   Int
+  hallId    Int
+  startTime DateTime  @db.Timestamp(6)
+  createdAt DateTime? @default(now()) @db.Timestamp(6)
+  updatedAt DateTime? @default(now()) @db.Timestamp(6)
+  Halls     Halls     @relation(fields: [hallId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  Movies    Movies    @relation(fields: [movieId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  Tickets   Tickets[]
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model Tickets {
+  id            Int       @id @default(autoincrement())
+  userId        Int
+  sessionId     Int
+  hallId        Int
+  seatId        Int
+  status        String?   @db.VarChar(10)
+  reservedUntil DateTime? @db.Timestamp(6)
+  createdAt     DateTime? @default(now()) @db.Timestamp(6)
+  Halls         Halls     @relation(fields: [hallId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  Seats         Seats     @relation(fields: [seatId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  Sessions      Sessions  @relation(fields: [sessionId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  Users         Users     @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model Users {
+  id           Int         @id @default(autoincrement())
+  username     String      @db.VarChar(50)
+  email        String      @unique @db.VarChar(50)
+  role         String?     @default("user") @db.VarChar(20)
+  createdAt    DateTime?   @default(now()) @db.Timestamp(6)
+  updatedAt    DateTime?   @default(now()) @db.Timestamp(6)
+  passwordHash String      @db.VarChar(100)
+  EventLogs    EventLogs[]
+  Tickets      Tickets[]
+}
