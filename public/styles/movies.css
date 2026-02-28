@@ -1,0 +1,102 @@
+/* public/styles/movies.css */
+
+/* Контейнер-герой (велике фонове зображення) */
+.hero-section {
+    position: relative;
+    width: 100%;
+    min-height: 85vh;
+    /* Поки що фонова картинка-заглушка. Градієнт потрібен, щоб текст знизу читався */
+    background-image: linear-gradient(to top, var(--background) 5%, rgba(6, 4, 4, 0.4) 50%, rgba(6, 4, 4, 0.1) 100%), 
+                      url('https://placehold.co/1920x1080/222/555?text=Фон+Фільму');
+    background-size: cover;
+    background-position: center;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end; /* Притискаємо контент донизу */
+    padding-bottom: 50px;
+}
+
+/* Карусель (горизонтальний скрол або Swiper) */
+.movies-carousel {
+    display: flex;
+    gap: 20px;
+    padding: 0 40px;
+    overflow-x: auto;
+    /* Ховаємо скроллбар для краси, але залишаємо можливість свайпати */
+    scrollbar-width: none; 
+    margin-bottom: 40px;
+}
+.movies-carousel::-webkit-scrollbar {
+    display: none;
+}
+
+.movie-card {
+    flex: 0 0 220px; /* Фіксована ширина картки */
+    border-radius: 12px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: transform 0.3s ease, border 0.3s ease;
+    border: 2px solid transparent;
+}
+
+.movie-card:hover {
+    transform: scale(1.05);
+    border-color: var(--primary);
+}
+
+.movie-card img {
+    width: 100%;
+    height: 330px;
+    object-fit: cover;
+    display: block;
+}
+
+/* Інформація про вибраний фільм (як у Планеті Кіно знизу) */
+.selected-movie-info {
+    padding: 0 40px;
+    max-width: 800px;
+}
+
+.selected-movie-info h1 {
+    font-size: 3rem;
+    margin: 0 0 10px 0;
+    text-transform: uppercase;
+    font-weight: 900;
+}
+
+.selected-movie-info p {
+    color: #ccc;
+    font-size: 1.1rem;
+    margin-bottom: 20px;
+}
+
+.tags {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 30px;
+}
+
+.tag {
+    background-color: transparent;
+    border: 1px solid var(--text);
+    padding: 5px 15px;
+    border-radius: 20px;
+    font-size: 0.9rem;
+}
+
+.btn-details {
+    background-color: var(--primary);
+    color: var(--text);
+    text-decoration: none;
+    padding: 12px 30px;
+    border-radius: 30px;
+    font-size: 1.1rem;
+    font-weight: bold;
+    transition: background-color 0.2s;
+    border: none;
+    cursor: pointer;
+}
+
+.btn-details:hover {
+    background-color: var(--secondary);
+}
