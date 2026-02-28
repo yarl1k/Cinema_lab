@@ -1,0 +1,18 @@
+@import url('./movies.css');
+@import url('./layout.css');
+
+:root {
+    --text: #f1eeef;
+    --background: #060404;
+    --primary: #d33131;
+    --secondary: #c24400;
+    --accent: #e6a519;
+}
+body {
+    background-color: var(--background);
+    color: var(--text);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}

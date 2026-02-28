@@ -1,0 +1,12 @@
+<section class="movies-section">
+    <h1>Зараз у кіно</h1>
+    <div class="movies-grid">
+        <% movies.forEach(movie => { %>
+            <div class="movie-item">
+                <h3><%= movie.title %></h3>
+                <p><%= movie.duration %> хв</p>
+                <a href="/movies/<%= movie.id %>/details">Деталі</a>
+            </div>
+        <% }) %>
+    </div>
+</section>
