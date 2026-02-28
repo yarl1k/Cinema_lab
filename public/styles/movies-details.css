@@ -1,0 +1,146 @@
+/* public/styles/movie-details.css */
+
+.details-container {
+    max-width: 1400px;
+    margin: 40px auto;
+    padding: 0 40px;
+    display: grid;
+    /* Три колонки: Постер (300px), Інфо (гнучка), Розклад (350px) */
+    grid-template-columns: 400px 1fr 350px;
+    gap: 40px;
+    align-items: start;
+}
+
+/* Навігація (Хлібні крихти) */
+.breadcrumbs {
+    grid-column: 1 / -1; /* Займає всю ширину */
+    margin-bottom: 20px;
+    font-size: 0.9rem;
+    color: #888;
+}
+
+.breadcrumbs a {
+    color: #888;
+    text-decoration: none;
+    transition: color 0.2s;
+}
+
+.breadcrumbs a:hover {
+    color: var(--primary);
+}
+
+/* 1. Ліва колонка (Постер) */
+.poster-col img {
+    width: 100%;
+    border-radius: 8px;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5);
+    display: block;
+    margin-bottom: 15px;
+}
+
+.trailer-btn {
+    display: block;
+    padding: 15px;
+    background-color: #222;
+    color: var(--text);
+    text-align: center;
+    text-decoration: none;
+    font-weight: bold;
+    border-radius: 4px;
+    transition: background-color 0.2s;
+}
+
+.trailer-btn:hover {
+    background-color: var(--primary);
+}
+
+/* 2. Центральна колонка (Інформація) */
+.info-col h1 {
+    font-size: 2.5rem;
+    margin: 0 0 20px 0;
+}
+
+.info-table {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 30px;
+}
+
+.info-row {
+    display: flex;
+    padding: 10px 0;
+    border-bottom: 1px solid #222;
+    font-size: 0.95rem;
+}
+
+.info-key {
+    width: 180px;
+    color: #888;
+}
+
+.info-value {
+    flex: 1;
+    color: var(--text);
+    font-weight: 500;
+}
+
+.info-description {
+    line-height: 1.6;
+    color: #ccc;
+    font-size: 1.05rem;
+}
+
+/* 3. Права колонка (Розклад) */
+.schedule-col {
+    background-color: #111;
+    border-radius: 8px;
+    padding: 20px;
+    position: sticky;
+    top: 90px; /* Липкий блок, який їздить за скролом (враховуючи твій топбар) */
+}
+
+.schedule-header {
+    font-size: 1.2rem;
+    font-weight: bold;
+    margin: 0 0 20px 0;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #333;
+}
+
+.schedule-empty {
+    color: #888;
+    font-size: 0.9rem;
+}
+
+.session-hall {
+    margin-bottom: 15px;
+}
+
+.hall-name {
+    font-size: 0.9rem;
+    color: #aaa;
+    margin-bottom: 10px;
+}
+
+.time-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.time-badge {
+    background-color: transparent;
+    border: 1px solid #444;
+    color: var(--text);
+    padding: 8px 15px;
+    border-radius: 4px;
+    text-decoration: none;
+    font-weight: bold;
+    font-size: 1.1rem;
+    transition: all 0.2s;
+}
+
+.time-badge:hover {
+    border-color: var(--primary);
+    color: var(--primary);
+}

@@ -1,12 +1,122 @@
-<section class="movies-section">
-    <h1>Зараз у кіно</h1>
-    <div class="movies-grid">
-        <% movies.forEach(movie => { %>
-            <div class="movie-item">
-                <h3><%= movie.title %></h3>
-                <p><%= movie.duration %> хв</p>
-                <a href="/movies/<%= movie.id %>/details">Деталі</a>
+<% 
+    let heroBg = 'https://placehold.co/1920x1080/060404/060404';
+    if (movies && movies.length > 0 && movies[0].backgroundUrl) {
+        heroBg = movies[0].backgroundUrl;
+    }
+%>
+
+<div class="hero-section" id="heroBg" style="background-image: linear-gradient(to top, var(--background) 5%, rgba(6, 4, 4, 0.45) 45%, rgba(6, 4, 4, 0.2) 100%), url('<%= heroBg %>');">
+    <div class="selected-movie-info">
+        <% if (movies.length > 0) { %>
+            <h1 id="infoTitle"><%= movies[0].title %></h1>
+            <p id="infoDesc"><%= movies[0].description ? movies[0].description.substring(0, 150) + '...' : 'Опис відсутній...' %></p>
+            
+            <div class="tags" id="infoTags">
+                <% if (movies[0].isUpcoming) { %>
+                    <span class="tag accent-tag">У кіно з <%= movies[0].releaseFormatted %></span>
+                <% } else { %>
+                    <span class="tag">Зараз у прокаті</span>
+                <% } %>
+                
+                <% if (movies[0].endDate) { %>
+                    <span class="tag">До <%= new Date(movies[0].endDate).toLocaleDateString('uk-UA', { day: 'numeric', month: 'long' }) %></span>
+                <% } %>
+                
+                <% if (movies[0].duration) { %>
+                    <span class="tag"><%= movies[0].duration %> хв</span>
+                <% } %>
+                
+                <% if (movies[0].rating) { %>
+                    <span class="tag">⭐ <%= movies[0].rating %></span>
+                <% } %>
+            </div>
+
+            <a href="/movies/<%= movies[0].id %>/details" id="infoLink" class="btn-details">Деталі та сеанси</a>
+        <% } else { %>
+            <h1>Немає сеансів</h1>
+            <p>Наразі афіша порожня.</p>
+        <% } %>
+    </div>
+
+    <div class="movies-carousel" id="carousel">
+        <% movies.forEach((movie, index) => { %>
+            <div 
+                class="movie-card <%= index === 0 ? 'active' : '' %>"
+                data-id="<%= movie.id %>"
+                data-bg="<%= movie.backgroundUrl || 'https://placehold.co/1920x1080/060404/060404' %>"
+                data-title="<%= movie.title %>"
+                data-desc="<%= movie.description ? movie.description.substring(0, 150) + '...' : 'Опис відсутній...' %>"
+                data-isupcoming="<%= movie.isUpcoming %>"
+                data-release="<%= movie.releaseFormatted %>"
+                data-enddate="<%= movie.endDate ? new Date(movie.endDate).toLocaleDateString('uk-UA', { day: 'numeric', month: 'long' }) : '' %>"
+                data-duration="<%= movie.duration %>"
+                data-rating="<%= movie.rating %>"
+            >
+                <img src="<%= movie.posterUrl || 'https://placehold.co/220x330/1a1a1a/d33131?text=Постер' %>" alt="<%= movie.title %>">
+                
+                <div class="card-overlay">
+                    <a href="/movies/<%= movie.id %>/details" class="card-btn">Детальніше</a>
+                </div>
             </div>
         <% }) %>
     </div>
-</section>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const cards = document.querySelectorAll('.movie-card');
+        const heroBg = document.getElementById('heroBg');
+        const infoTitle = document.getElementById('infoTitle');
+        const infoDesc = document.getElementById('infoDesc');
+        const infoTags = document.getElementById('infoTags');
+        const infoLink = document.getElementById('infoLink');
+        const carousel = document.getElementById('carousel');
+
+        // Якщо елементів немає, перериваємо скрипт, щоб не було помилок
+        if (!heroBg || !infoTitle) return;
+
+            cards.forEach(card => {
+                card.addEventListener('click', () => {
+                    cards.forEach(c => c.classList.remove('active'));
+                    card.classList.add('active');
+
+                    // Плавний скрол каруселі
+                    const cardRect = card.getBoundingClientRect();
+                    const carouselRect = carousel.getBoundingClientRect();
+                    const scrollLeftPos = card.offsetLeft - (carouselRect.width / 2) + (cardRect.width / 2);
+                    carousel.scrollTo({ left: scrollLeftPos, behavior: 'smooth' });
+
+                    // Зміна фону та тексту
+                    const newBg = card.dataset.bg;
+                    setTimeout(() => {
+                        heroBg.style.backgroundImage = `linear-gradient(to top, var(--background) 5%, rgba(6, 4, 4, 0.45) 45%, rgba(6, 4, 4, 0.2) 100%), url('${newBg}')`;
+                        heroBg.style.opacity = '1';
+                        infoTitle.textContent = card.dataset.title;
+                        infoDesc.textContent = card.dataset.desc;
+                        infoLink.href = `/movies/${card.dataset.id}/details`;
+
+                    let tagsHtml = '';
+                    if (card.dataset.isupcoming === 'true') {
+                        tagsHtml += `<span class="tag accent-tag">У кіно з ${card.dataset.release}</span>`;
+                    } else {
+                        tagsHtml += `<span class="tag">Зараз у прокаті</span>`;
+                    }
+                    
+                    if (card.dataset.enddate) {
+                        tagsHtml += `<span class="tag">До ${card.dataset.enddate}</span>`;
+                    }
+                    
+                    if (card.dataset.duration && card.dataset.duration !== 'null') {
+                        tagsHtml += `<span class="tag">${card.dataset.duration} хв</span>`;
+                    }
+                    
+                    if (card.dataset.rating && card.dataset.rating !== 'null') {
+                        tagsHtml += `<span class="tag">⭐ ${card.dataset.rating}</span>`;
+                    }
+                    
+                    infoTags.innerHTML = tagsHtml;
+                });
+            }, 850);
+        }); 
+    });
+</script>

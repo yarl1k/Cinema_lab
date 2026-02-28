@@ -5,43 +5,44 @@
     position: relative;
     width: 100%;
     min-height: 85vh;
-    /* Поки що фонова картинка-заглушка. Градієнт потрібен, щоб текст знизу читався */
-    background-image: linear-gradient(to top, var(--background) 5%, rgba(6, 4, 4, 0.4) 50%, rgba(6, 4, 4, 0.1) 100%), 
+    /* Зробили градієнт набагато темнішим (0.9 та 0.7 замість 0.4 та 0.1) */
+    background-image: linear-gradient(to top, var(--background) 5%, rgba(6, 4, 4, 0.45) 45%, rgba(6, 4, 4, 0.2) 100%), 
                       url('https://placehold.co/1920x1080/222/555?text=Фон+Фільму');
     background-size: cover;
     background-position: center;
     display: flex;
     flex-direction: column;
-    justify-content: flex-end; /* Притискаємо контент донизу */
+    justify-content: flex-end;
     padding-bottom: 50px;
+    transition: opacity 0.3s ease-in-out;
 }
 
-/* Карусель (горизонтальний скрол або Swiper) */
+/* Карусель - робимо контейнер вищим (padding) і додаємо відступ зверху (margin-top) */
 .movies-carousel {
     display: flex;
     gap: 20px;
-    padding: 0 40px;
+    padding: 30px 40px; /* Збільшили верхній і нижній відступ, щоб картки не обрізалися */
+    margin-top: 40px; /* Відступ від блоку "Деталі та сеанси" */
     overflow-x: auto;
-    /* Ховаємо скроллбар для краси, але залишаємо можливість свайпати */
-    scrollbar-width: none; 
-    margin-bottom: 40px;
+    scrollbar-width: none;
+    scroll-behavior: smooth;
 }
 .movies-carousel::-webkit-scrollbar {
     display: none;
 }
 
 .movie-card {
-    flex: 0 0 220px; /* Фіксована ширина картки */
+    flex: 0 0 220px;
     border-radius: 12px;
     overflow: hidden;
     cursor: pointer;
     transition: transform 0.3s ease, border 0.3s ease;
     border: 2px solid transparent;
+    position: relative;
 }
 
 .movie-card:hover {
-    transform: scale(1.05);
-    border-color: var(--primary);
+    border-color: var(--secondary);
 }
 
 .movie-card img {
@@ -49,6 +50,47 @@
     height: 330px;
     object-fit: cover;
     display: block;
+}
+
+/* Стиль для активної (обраної) картки */
+.movie-card.active {
+    transform: scale(1.08);
+    border-color: var(--secondary);
+    box-shadow: 0 10px 20px rgba(211, 49, 49, 0.3);
+}
+
+/* Оверлей з кнопкою, який прихований за замовчуванням */
+.card-overlay {
+    position: absolute;
+    bottom: -50px;
+    left: 0;
+    right: 0;
+    background: linear-gradient(to top, rgba(0,0,0,0.9), transparent);
+    padding: 20px 10px 15px;
+    display: flex;
+    justify-content: center;
+    opacity: 0;
+    transition: all 0.3s ease-in-out;
+}
+/* Коли картка активна, кнопка виїжджає вгору */
+.movie-card.active .card-overlay {
+    bottom: 0;
+    opacity: 1;
+}
+
+.card-btn {
+    background-color: var(--primary);
+    color: var(--text);
+    text-decoration: none;
+    padding: 8px 20px;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    font-weight: bold;
+    transition: background-color 0.2s;
+}
+
+.card-btn:hover {
+    background-color: var(--secondary);
 }
 
 /* Інформація про вибраний фільм (як у Планеті Кіно знизу) */

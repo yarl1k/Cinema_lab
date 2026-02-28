@@ -29,13 +29,26 @@ model Halls {
 }
 
 model Movies {
-  id          Int        @id @default(autoincrement())
-  title       String     @db.VarChar(50)
-  description String?
-  duration    Int
-  createdAt   DateTime?  @default(now()) @db.Timestamp(6)
-  updatedAt   DateTime?  @default(now()) @db.Timestamp(6)
-  Sessions    Sessions[]
+  id             Int        @id @default(autoincrement())
+  tmdbId         Int?       @unique
+  title          String     @db.VarChar(100)
+  description    String?
+  duration       Int?
+  originalTitle  String?    @db.VarChar(150)
+  director       String?    @db.VarChar(100)
+  cast           String?    
+  studio         String?    @db.VarChar(150)
+  ageRestriction String?    @db.VarChar(10) 
+  language       String?    @default("українська") @db.VarChar(50)
+  rating         Float?     
+  releaseDate    DateTime?  @db.Date 
+  endDate        DateTime?  @db.Date 
+  genres         String?    
+  posterUrl      String?    @db.VarChar(255)
+  backgroundUrl  String?    @db.VarChar(255)
+  createdAt      DateTime?  @default(now()) @db.Timestamp(6)
+  updatedAt      DateTime?  @default(now()) @db.Timestamp(6)
+  Sessions       Sessions[]
 }
 
 model Seats {

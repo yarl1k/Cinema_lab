@@ -1,0 +1,115 @@
+<div class="details-container">
+    
+    <div class="breadcrumbs">
+        <a href="/">Головна</a> > <a href="/">Фільми</a> > <span><%= movie.title %></span>
+    </div>
+
+    <div class="poster-col">
+        <img src="<%= movie.posterUrl || 'https://placehold.co/300x450/1a1a1a/d33131?text=Немає+постера' %>" alt="<%= movie.title %>">
+        <a href="#" class="trailer-btn">▶ Дивитись трейлер</a>
+    </div>
+
+    <div class="info-col">
+        <h1><%= movie.title %></h1>
+
+    <div class="info-table">
+        <div class="info-row">
+            <div class="info-key">Вікові обмеження:</div>
+            <div class="info-value">
+                <span style="background: var(--primary); padding: 2px 6px; border-radius: 4px; font-weight: bold;">
+                    <%= movie.ageRestriction || '0+' %>
+                </span>
+            </div>
+        </div>
+        
+        <div class="info-row">
+            <div class="info-key">Оригінальна назва:</div>
+            <div class="info-value" style="color: #888;"><%= movie.originalTitle || '-' %></div>
+        </div>
+        
+        <div class="info-row">
+            <div class="info-key">Режисер:</div>
+            <div class="info-value"><%= movie.director || 'Невідомо' %></div>
+        </div>
+        
+        <div class="info-row">
+            <div class="info-key">У головних ролях:</div>
+            <div class="info-value"><%= movie.cast || 'Невідомо' %></div>
+        </div>
+        
+        <div class="info-row">
+            <div class="info-key">Студія:</div>
+            <div class="info-value"><%= movie.studio || 'Невідомо' %></div>
+        </div>
+
+        <div class="info-row">
+            <div class="info-key">Рейтинг TMDB:</div>
+            <div class="info-value"><%= movie.rating ? `⭐ ${movie.rating}` : 'Немає оцінок' %></div>
+        </div>
+        
+        <div class="info-row">
+            <div class="info-key">Мова показу:</div>
+            <div class="info-value"><%= movie.language || 'Українська' %></div>
+        </div>
+        
+        <div class="info-row">
+            <div class="info-key">Жанр:</div>
+            <div class="info-value"><%= movie.genres || 'Не вказано' %></div>
+        </div>
+
+        <div class="info-row">
+            <div class="info-key">Тривалість:</div>
+            <div class="info-value"><%= movie.duration ? `${movie.duration} хв` : 'Уточнюється' %></div>
+        </div>
+
+        <div class="info-row">
+            <div class="info-key">Статус прокату:</div>
+            <div class="info-value">
+                <% if (movie.isUpcoming) { %>
+                    <span style="color: var(--accent)">У кіно з <%= movie.releaseFormatted %></span>
+                <% } else { %>
+                    <span style="color: var(--primary)">Зараз у прокаті</span>
+                <% } %>
+            </div>
+        </div>
+    </div>
+
+        <div class="info-description">
+            <p><%= movie.description || 'Опис для цього фільму наразі відсутній.' %></p>
+        </div>
+    </div>
+
+    <div class="schedule-col">
+        <h3 class="schedule-header">Розклад сеансів</h3>
+        
+        <% if (movie.Sessions && movie.Sessions.length > 0) { %>
+            
+            <div class="session-hall">
+                <div class="hall-name">Сьогодні</div>
+                <div class="time-badges">
+                    <% movie.Sessions.forEach(session => { %>
+                        <% 
+                            const time = new Date(session.startTime).toLocaleTimeString('uk-UA', { 
+                                hour: '2-digit', 
+                                minute: '2-digit' 
+                            }); 
+                        %>
+                        <a href="/tickets/buy/<%= session.id %>" class="time-badge"><%= time %></a>
+                    <% }) %>
+                </div>
+            </div>
+
+        <% } else { %>
+            
+            <p class="schedule-empty">
+                <% if (movie.isUpcoming) { %>
+                    Сеанси з'являться ближче до дати прем'єри (<%= movie.releaseFormatted %>).
+                <% } else { %>
+                    Наразі немає доступних сеансів для цього фільму.
+                <% } %>
+            </p>
+            
+        <% } %>
+    </div>
+
+</div>
