@@ -25,7 +25,6 @@ model Halls {
   seatsPerRow Int
   Seats       Seats[]
   Sessions    Sessions[]
-  Tickets     Tickets[]
 }
 
 model Movies {
@@ -74,18 +73,22 @@ model Sessions {
 
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
 model Tickets {
-  id            Int       @id @default(autoincrement())
-  userId        Int
-  sessionId     Int
-  hallId        Int
-  seatId        Int
-  status        String?   @db.VarChar(10)
-  reservedUntil DateTime? @db.Timestamp(6)
-  createdAt     DateTime? @default(now()) @db.Timestamp(6)
-  Halls         Halls     @relation(fields: [hallId], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  Seats         Seats     @relation(fields: [seatId], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  Sessions      Sessions  @relation(fields: [sessionId], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  Users         Users     @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  id           Int       @id @default(autoincrement())
+  ticketNumber String?   @unique @db.VarChar(50)
+  userId       Int
+  sessionId    Int
+  seatId       Int
+  status       String    @default("LOCKED") @db.VarChar(10)
+  lockedUntil  DateTime? @db.Timestamp(6)
+  price        Decimal?  @db.Decimal(10, 2)
+  version      Int       @default(1)
+  createdAt    DateTime? @default(now()) @db.Timestamp(6)
+  
+  Seats        Seats     @relation(fields: [seatId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  Sessions     Sessions  @relation(fields: [sessionId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  Users        Users     @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([sessionId, seatId])
 }
 
 model Users {
