@@ -23,6 +23,7 @@ model Halls {
   name        String     @db.VarChar(50)
   rows        Int
   seatsPerRow Int
+  isActive    Boolean    @default(true) 
   Seats       Seats[]
   Sessions    Sessions[]
 }

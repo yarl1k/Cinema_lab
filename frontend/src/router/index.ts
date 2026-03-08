@@ -11,7 +11,14 @@ const router = createRouter({
       path: '/movies/:id', // Динамічний параметр id
       name: 'movie-details',
       component: () => import("../views/movies/MoviesDetailsView.vue")
+    },
+    
+    {
+      path: '/admin',
+      name: 'admin',
+      component: () => import("../views/AdminView.vue")
     }
+
   ]
 })
 

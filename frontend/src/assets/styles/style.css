@@ -1,6 +1,7 @@
 @import url('./movies.css');
 @import url('./layout.css');
 @import url('./movies-details.css'); 
+@import url('./admin.css'); 
 
 :root {
     --text: #f1eeef;
