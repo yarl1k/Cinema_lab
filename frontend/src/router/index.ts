@@ -8,7 +8,7 @@ const router = createRouter({
       component: () => import("../views/movies/MoviesView.vue")
     },
     {
-      path: '/movies/:id', // Динамічний параметр id
+      path: '/movies/:id',
       name: 'movie-details',
       component: () => import("../views/movies/MoviesDetailsView.vue")
     },

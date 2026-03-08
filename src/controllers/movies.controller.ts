@@ -39,7 +39,6 @@ export const getMovieDetails = async (req: Request, res: Response) => {
     }
 };
 
-// admin stuff
 export const createMovie = async (req: Request, res: Response): Promise<void> => {
     try {
         const adminId = req.body.user?.id;

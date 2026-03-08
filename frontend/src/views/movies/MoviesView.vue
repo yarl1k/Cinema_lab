@@ -53,7 +53,7 @@ const selectMovie = (movie: Movie, event: Event) => {
   }
 };
 
-// 6. Допоміжні функції для форматування тексту
+
 const truncateDesc = (desc?: string) => {
   if (!desc) return 'Опис відсутній...';
   return desc.length > 150 ? desc.substring(0, 150) + '...' : desc;

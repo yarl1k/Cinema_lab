@@ -2,10 +2,7 @@ import type { Request, Response } from "express";
 import { prisma } from "../services/database/database.js";
 import { logEvent } from "../services/logger.js";
 
-// --- ДОПОМІЖНА ФУНКЦІЯ ДЛЯ БЕЗПЕКИ ---
 const getSafeAdminId = (req: Request) => {
-    // Перевіряємо всі можливі місця, де може бути ID юзера, 
-    // щоб не було помилки "reading properties of undefined"
     return req.body?.user?.id || (req as any).user?.id || null;
 };
 
@@ -97,7 +94,6 @@ export const deleteSession = async (req: Request, res: Response): Promise<void> 
             return;
         }
 
-        // 1. Перевірка на квитки
         const ticketsCount = await prisma.tickets.count({
             where: { sessionId: sessionId }
         });
@@ -107,7 +103,6 @@ export const deleteSession = async (req: Request, res: Response): Promise<void> 
             return;
         }
 
-        // 2. Видалення
         await prisma.sessions.delete({ where: { id: sessionId } });
 
         if (adminId) {

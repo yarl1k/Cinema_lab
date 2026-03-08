@@ -3,7 +3,6 @@ import { prisma } from "../services/database/database.js";
 
 export const getLogs = async (req: Request, res: Response): Promise<void> => {
     try {
-        // Отримуємо останні 100 подій, найновіші зверху
         const logs = await prisma.eventLogs.findMany({
             take: 100,
             orderBy: { createdAt: 'desc' },

@@ -44,7 +44,7 @@ export interface Movie {
   createdAt?: string | null;
   updatedAt?: string | null;
   
-  // Зв'язки
+
   Sessions?: Session[];
 }
 

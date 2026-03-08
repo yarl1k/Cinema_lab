@@ -322,7 +322,6 @@ const loadInitialData = async () => {
   } catch (e) { alert((e as Error).message); }
 };
 
-// --- ГОЛОВНІ ФУНКЦІЇ ЗАЛІВ ---
 const newHall = ref<Partial<Hall>>({ name: '', rows: 10, seatsPerRow: 15 });
 
 const createHall = async () => {
@@ -372,16 +371,13 @@ const openModal = async (movie?: Movie) => {
 
     movieForm.value = { ...movie, releaseDate: relDate, endDate: endDt };
     
-    // ЛОГІКА ДАТИ ДЛЯ ГЕНЕРАТОРА:
-    // Беремо завтрашній день
+
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
     
-    // Беремо дату релізу
     const release = movie.releaseDate ? new Date(movie.releaseDate) : tomorrow;
     
-    // Якщо фільм ще не вийшов, почнемо генерацію з дати релізу. 
-    // Якщо вже вийшов - почнемо з завтрашнього дня.
+
     const startGenDate = release > tomorrow ? release : tomorrow;
     
     batchSession.value = { 
@@ -473,8 +469,7 @@ const generateSessions = async () => {
       generatedSessions.push({
         movieId: editingMovieId.value!,
         hallId: Number(hallId),
-        // УВАГА: Я зберігаю час як ISO, але без зміщення локального часового поясу, 
-        // щоб бекенд не створював сеанси на 3 години раніше.
+
         startTime: new Date(`${datePrefix}T${t}:00`).toISOString()
        })
     );

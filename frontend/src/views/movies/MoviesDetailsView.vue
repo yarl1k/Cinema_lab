@@ -190,13 +190,11 @@ onMounted(async () => {
   }
 });
 
-// --- ДОПОМІЖНІ ФУНКЦІЇ ДЛЯ ДАТ ---
 
 const getLocalIsoDate = (date: Date) => {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
 };
 
-// Перевіряє, чи сеанс вже почався/минув (Використовується в шаблоні!)
 const isPastSession = (timeStr: string | Date) => {
   return new Date(timeStr).getTime() <= new Date().getTime();
 };
@@ -227,9 +225,6 @@ const createDayOption = (dateStr: string): DayOption => {
   return { isoDate: dateStr, weekday, dayMonth, relativeLabel };
 };
 
-// --- ФІЛЬТРАЦІЯ ДАТ ---
-
-// 1. Формуємо випадаючий список дат (Фільтруємо ТІЛЬКИ по днях, ігноруючи години)
 const scheduleDays = computed<DayOption[]>(() => {
   if (!movie.value || !movie.value.Sessions) return [];
   
@@ -239,7 +234,6 @@ const scheduleDays = computed<DayOption[]>(() => {
   movie.value.Sessions.forEach((session) => {
     const sessionDateIso = getLocalIsoDate(new Date(session.startTime));
     
-    // Додаємо дату тільки якщо вона сьогоднішня або в майбутньому
     if (sessionDateIso >= todayIso) {
       uniqueDateStrings.add(sessionDateIso);
     }
@@ -258,7 +252,6 @@ const selectedDayObj = computed(() => {
   return scheduleDays.value.find(d => d.isoDate === selectedDateIso.value);
 });
 
-// 2. Групуємо всі сеанси для обраного дня
 const sessionsByHall = computed(() => {
   if (!movie.value || !movie.value.Sessions || !selectedDateIso.value) return {};
 
@@ -281,7 +274,6 @@ const sessionsByHall = computed(() => {
   return grouped;
 });
 
-// --- ДІЇ UI ---
 
 const toggleDropdown = () => isDropdownOpen.value = !isDropdownOpen.value;
 const closeDropdown = () => isDropdownOpen.value = false;

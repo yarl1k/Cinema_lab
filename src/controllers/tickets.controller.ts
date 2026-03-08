@@ -55,7 +55,6 @@ export const lockSeat = async (req: Request, res: Response): Promise<void> => {
     
 };
 
-// 3. Скасувати лок вручну (ДОДАТКОВО: якщо юзер натиснув "Назад" у кошику)
 export const cancelLock = async (req: Request, res: Response): Promise<void> => {
     try {
         throw new Error("Ще не реалізовано");

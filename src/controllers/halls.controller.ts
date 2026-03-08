@@ -66,16 +66,16 @@ export const createHall = async (req: Request, res: Response): Promise<void> => 
 export const toggleHallStatus = async (req: Request, res: Response): Promise<void> => {
     try {
         const hallId = parseInt(req.params.id as string);
-        const adminId = req.body?.user?.id; // Тепер це безпечно, бо ми будемо робити PATCH/PUT запит з body
+        const adminId = req.body?.user?.id; 
 
-        // Знаходимо поточний зал
+
         const hall = await prisma.halls.findUnique({ where: { id: hallId } });
         if (!hall) {
             res.status(404).json({ success: false, message: "Зал не знайдено" });
             return;
         }
 
-        // Перемикаємо статус на протилежний
+
         const updatedHall = await prisma.halls.update({
             where: { id: hallId },
             data: { isActive: !hall.isActive }
