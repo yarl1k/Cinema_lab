@@ -7,4 +7,4 @@ Backend:
 * PostgreSQL 18 + Prisma ORM
 
 Frontend:
-*  EJS (Embedded JavaScript templating)
+*  Vue.js
