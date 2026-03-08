@@ -1,6 +1,4 @@
-/* ====================
-   TOPBAR
-==================== */
+
 .topbar {
     display: flex;
     justify-content: space-between;
@@ -8,7 +6,7 @@
     padding: 0 20px;
     height: 70px;
     background-color: var(--background);
-    border-bottom: 1px solid #222; /* Легкий роздільник */
+    border-bottom: 1px solid #222;
     position: sticky;
     top: 0;
     z-index: 1000;
@@ -54,9 +52,6 @@
     border-color: var(--text);
 }
 
-/* ====================
-   FOOTER
-==================== */
 .footer {
     padding: 20px;
     text-align: center;
