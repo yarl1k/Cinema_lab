@@ -43,7 +43,6 @@ const selectMovie = (movie: MovieHero, event: Event) => {
     const card = event.currentTarget as HTMLElement;
     const cardRect = card.getBoundingClientRect();
     const wrapperRect = carousel.value.getBoundingClientRect();
-    // Calculate the position of the card relative to the wrapper's current scroll
     const cardLeftRelativeToWrapper = cardRect.left - wrapperRect.left + carousel.value.scrollLeft;
     const scrollLeftPos = cardLeftRelativeToWrapper - wrapperRect.width / 2 + cardRect.width / 2;
     carousel.value.scrollTo({ left: scrollLeftPos, behavior: 'smooth' });
@@ -52,7 +51,6 @@ const selectMovie = (movie: MovieHero, event: Event) => {
 
 const handleWheel = (e: WheelEvent) => {
   if (!carousel.value) return;
-  // Make vertical scroll trigger horizontal scroll on the carousel
   if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
     e.preventDefault();
     carousel.value.scrollBy({ left: e.deltaY * 2, behavior: 'auto' });
@@ -61,7 +59,6 @@ const handleWheel = (e: WheelEvent) => {
 </script>
 
 <template>
-  <!-- Loading state -->
   <div
     v-if="isLoading"
     class="flex items-center justify-center h-[calc(100vh-70px)] text-cinema-text"
@@ -70,8 +67,6 @@ const handleWheel = (e: WheelEvent) => {
   >
     <span class="text-lg opacity-60">Завантаження афіші...</span>
   </div>
-
-  <!-- Empty state -->
   <div
     v-else-if="movies.length === 0"
     class="flex items-end h-[calc(100vh-70px)] bg-background pb-14"
@@ -91,13 +86,8 @@ const handleWheel = (e: WheelEvent) => {
     :style="heroStyle"
     :aria-label="`Зараз виділено: ${activeMovie.title}`"
   >
-    <!-- Movie info -->
     <MovieHeroInfo :movie="activeMovie" class="pb-6" />
 
-    <!-- Carousel:
-         - overflow-x: auto for horizontal scroll
-         - overflow-y: visible so scaled cards aren't clipped vertically
-         The padding-y (py-8) creates room for the scale(1.08) transform -->
     <div
       ref="carousel"
       class="carousel-wrapper scroll-smooth"
@@ -120,13 +110,9 @@ const handleWheel = (e: WheelEvent) => {
 </template>
 
 <style scoped>
-/* Fix carousel clipping:
-   overflow-x: auto clips overflow-y too — workaround:
-   wrap with overflow-y: visible container, inner nav scrolls horizontally */
 .carousel-wrapper {
   overflow-x: auto;
   overflow-y: visible;
-  /* Extra vertical padding so scaled cards (scale 1.08) aren't clipped */
   padding-top: 20px;
   padding-bottom: 24px;
   scrollbar-width: none;
@@ -135,9 +121,7 @@ const handleWheel = (e: WheelEvent) => {
   display: none;
 }
 .carousel-wrapper nav {
-  /* No overflow on the nav itself — let the wrapper handle it */
   overflow: visible;
-  /* Keep items in one row */
   display: flex;
   gap: 20px;
   padding: 0 40px;

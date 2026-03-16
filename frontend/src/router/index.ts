@@ -17,6 +17,11 @@ const router = createRouter({
       path: '/admin',
       name: 'admin',
       component: () => import("../views/AdminView.vue")
+    },
+    {
+      path: '/booking/:sessionId',
+      name: 'booking',
+      component: () => import("../views/booking/BookingView.vue")
     }
 
   ]

@@ -56,7 +56,6 @@ const vClickOutside = {
     class="bg-[#2a2a2a] rounded-xl overflow-hidden sticky top-[90px] min-h-[600px] flex flex-col"
     aria-label="Розклад сеансів"
   >
-    <!-- Header -->
     <h2 class="text-xl font-bold text-white px-5 pt-5 pb-4 m-0 bg-[#333]">
       Розклад сеансів
     </h2>
@@ -134,7 +133,7 @@ const vClickOutside = {
                 v-for="session in sessions"
                 :key="session.id"
                 role="listitem"
-                :to="isPastSession(session.startTime) ? '' : `/tickets/buy/${session.id}`"
+                :to="isPastSession(session.startTime) ? '' : `/booking/${session.id}`"
                 :class="[
                   'inline-block border border-white/30 text-white px-4 py-2 rounded',
                   'text-base font-bold no-underline transition-all duration-200',
@@ -158,7 +157,6 @@ const vClickOutside = {
       </div>
     </template>
 
-    <!-- No sessions at all -->
     <div
       v-else
       class="p-5 text-white/50 text-center flex-1 flex items-center justify-center"

@@ -4,7 +4,6 @@
     role="main"
     aria-label="Панель адміністратора"
   >
-    <!-- Page heading -->
     <header class="mb-8 flex items-center gap-4 border-b border-white/10 pb-6">
       <div class="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center text-xl" aria-hidden="true">⚙️</div>
       <div>
@@ -13,7 +12,6 @@
       </div>
     </header>
 
-    <!-- Tab navigation -->
     <div
       class="flex gap-1 mb-8 bg-[#111] p-1 rounded-xl w-fit"
       role="tablist"
@@ -110,7 +108,6 @@
     >
       <h2 class="text-lg font-bold text-cinema-text mb-5">Керування залами</h2>
 
-      <!-- Add Hall Form -->
       <section
         class="bg-[#111] border border-dashed border-white/15 rounded-xl p-5 mb-6"
         aria-label="Форма додавання нового залу"
@@ -232,7 +229,15 @@
       </AppAdminTable>
     </div>
 
-    <!-- ── MOVIE MODAL ───────────────────────────────────────────── -->
+    <div
+      v-show="activeTab === 'stats'"
+      id="admin-panel-stats"
+      role="tabpanel"
+      aria-labelledby="admin-tab-stats"
+    >
+      <AdminStatsTab v-if="activeTab === 'stats'" />
+    </div>
+
     <AdminMovieModal
       :is-open="isModalOpen"
       :is-editing="isEditing"
@@ -267,12 +272,14 @@ import { checkTimeOverlap } from '@/services/SessionChecker';
 import AppAdminTable from '@/components/AppAdminTable.vue';
 import AppStatusBadge from '@/components/AppStatusBadge.vue';
 import AdminMovieModal from '@/components/admin/AdminMovieModal.vue';
+import AdminStatsTab from '@/components/admin/AdminStatsTab.vue';
 
-// ── Tab config ────────────────────────────────────────────────────
+
 const tabs = [
-  { id: 'movies', label: 'Фільми', icon: '🎬' },
-  { id: 'halls',  label: 'Зали',   icon: '🏢' },
-  { id: 'logs',   label: 'Журнал', icon: '📜' },
+  { id: 'movies', label: 'Фільми', icon: '' },
+  { id: 'halls',  label: 'Зали',   icon: '' },
+  { id: 'logs',   label: 'Журнал', icon: '' },
+  { id: 'stats',  label: 'Статистика', icon: '' },
 ] as const;
 type TabId = typeof tabs[number]['id'];
 

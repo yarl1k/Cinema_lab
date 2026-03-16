@@ -1,7 +1,6 @@
 <template>
   <div class="min-h-screen flex flex-col">
 
-    <!-- ── Sidebar Overlay ───────────────────────────────────────── -->
     <Transition name="overlay-fade">
       <div
         v-if="isSidebarOpen"
@@ -11,7 +10,6 @@
       />
     </Transition>
 
-    <!-- ── Slide-in Sidebar ──────────────────────────────────────── -->
     <Transition name="sidebar-slide">
       <aside
         v-if="isSidebarOpen"
@@ -72,7 +70,6 @@
             </li>
           </ul>
 
-          <!-- Divider -->
           <div class="border-t border-white/8 my-4" />
 
           <p class="text-[11px] uppercase tracking-widest text-white/25 px-3 mb-2">Система</p>
@@ -90,7 +87,6 @@
           </ul>
         </nav>
 
-        <!-- Sidebar footer -->
         <div class="px-5 py-4 border-t border-white/8 shrink-0">
           <p class="text-[11px] text-white/25 m-0 text-center">
             © 2026 Cinema Information System
@@ -99,7 +95,6 @@
       </aside>
     </Transition>
 
-    <!-- ── Top Navigation Bar ───────────────────────────────────── -->
     <header
       class="sticky top-0 z-[1000] flex items-center justify-between
              px-6 h-[70px] bg-background/95 border-b border-white/8
@@ -153,7 +148,6 @@
       </div>
     </header>
 
-    <!-- ── Main Content ──────────────────────────────────────────── -->
     <main id="main-content" class="flex-1" tabindex="-1">
       <router-view />
     </main>
@@ -171,7 +165,7 @@ const closeSidebar  = () => { isSidebarOpen.value = false; };
 </script>
 
 <style scoped>
-/* ── Sidebar link base style ─────────────────────────────────────── */
+
 .sidebar-link {
   display: flex;
   align-items: center;
@@ -200,7 +194,7 @@ const closeSidebar  = () => { isSidebarOpen.value = false; };
   font-weight: 600;
 }
 
-/* ── Sidebar slide transition ────────────────────────────────────── */
+
 .sidebar-slide-enter-active,
 .sidebar-slide-leave-active {
   transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
@@ -210,7 +204,7 @@ const closeSidebar  = () => { isSidebarOpen.value = false; };
   transform: translateX(-100%);
 }
 
-/* ── Overlay fade transition ─────────────────────────────────────── */
+
 .overlay-fade-enter-active,
 .overlay-fade-leave-active {
   transition: opacity 0.25s ease;

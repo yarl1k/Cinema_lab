@@ -35,7 +35,6 @@ const emit = defineEmits<{
       loading="lazy"
     />
 
-    <!-- Slide-up overlay on active -->
     <div :class="['card-overlay', isActive ? 'active' : '']" aria-hidden="true">
       <router-link
         :to="`/movies/${movie.id}`"

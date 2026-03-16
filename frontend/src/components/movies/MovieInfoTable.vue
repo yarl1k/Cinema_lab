@@ -2,7 +2,6 @@
 export interface InfoRow {
   key: string;
   value: string;
-  /** Pass a simple camelCase string to opt into a named slot. */
   slot?: string;
 }
 

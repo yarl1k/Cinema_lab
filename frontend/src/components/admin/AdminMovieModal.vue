@@ -3,7 +3,6 @@ import { computed } from 'vue';
 import AppAdminTable from '@/components/AppAdminTable.vue';
 import type { Movie, Hall, Session } from '@/types/types';
 
-// ── Props ──────────────────────────────────────────────────────────
 const props = defineProps<{
   isOpen: boolean;
   isEditing: boolean;
@@ -21,7 +20,6 @@ const props = defineProps<{
   isTimeDisabled: (time: string) => boolean;
 }>();
 
-// ── Emits ──────────────────────────────────────────────────────────
 const emit = defineEmits<{
   close: [];
   save: [];
@@ -39,7 +37,6 @@ const emit = defineEmits<{
 const formatTime = (isoString: string | Date) =>
   new Date(isoString).toLocaleTimeString('uk-UA', { hour: '2-digit', minute: '2-digit' });
 
-// ── Helpers for two-way binding on sub-fields ─────────────────────
 const updateForm = (key: keyof Movie, value: unknown) => {
   emit('update:movieForm', { ...props.movieForm, [key]: value });
 };
@@ -66,7 +63,6 @@ const updateBatch = (key: keyof typeof props.batchSession, value: unknown) => {
                  flex overflow-hidden shadow-[0_25px_50px_-12px_rgba(0,0,0,0.7)]
                  modal-enter"
         >
-          <!-- Close button -->
           <button
             type="button"
             class="absolute top-4 right-5 w-8 h-8 rounded-full bg-[#333] flex items-center justify-center
@@ -294,7 +290,6 @@ const updateBatch = (key: keyof typeof props.batchSession, value: unknown) => {
               aria-label="Розклад сеансів"
               class="flex-1 overflow-y-auto pr-2"
             >
-              <!-- Generator box -->
               <div class="bg-[#222] p-4 rounded-xl border border-dashed border-white/15 mb-5">
                 <h3 class="mt-0 mb-4 text-accent text-base font-semibold">Генерація розкладу сеансів</h3>
 
@@ -422,7 +417,6 @@ const updateBatch = (key: keyof typeof props.batchSession, value: unknown) => {
 </template>
 
 <style scoped>
-/* Input utility classes used heavily inside the modal */
 .modal-input {
   width: 100%;
   padding: 10px 12px;
@@ -449,12 +443,10 @@ select.modal-input {
   opacity: 0.8;
 }
 
-/* Modal enter animation */
 .modal-enter {
   animation: slideUp 0.3s ease-out;
 }
 
-/* Backdrop transition */
 .backdrop-fade-enter-active,
 .backdrop-fade-leave-active {
   transition: opacity 0.2s ease;

@@ -1,5 +1,4 @@
 <template>
-  <!-- Loading -->
   <div
     v-if="!movie"
     class="flex items-center justify-center min-h-[60vh] text-cinema-text"
@@ -9,7 +8,6 @@
     <span class="text-lg opacity-60">Завантаження деталей...</span>
   </div>
 
-  <!-- Main content -->
   <main
     v-else
     class="max-w-[1400px] mx-auto my-10 px-10 grid gap-10"
@@ -50,20 +48,20 @@
       <h1 class="text-[2.5rem] font-bold m-0 mb-5">{{ movie.title }}</h1>
 
       <MovieInfoTable :rows="infoRows">
-        <!-- Age badge -->
+
         <template #ageBadge>
           <span class="inline-block bg-primary px-2 py-0.5 rounded text-sm font-bold">
             {{ movie.ageRestriction || '0+' }}
           </span>
         </template>
-        <!-- Status -->
+
         <template #statusBadge>
           <span v-if="movie.isUpcoming" style="color: var(--accent)">
             У кіно з {{ movie.releaseFormatted }}
           </span>
           <span v-else style="color: var(--primary)">Зараз у прокаті</span>
         </template>
-        <!-- Original title (muted) -->
+
         <template #origTitle>
           <span class="text-white/50">{{ movie.originalTitle || '-' }}</span>
         </template>
@@ -125,7 +123,6 @@ onMounted(async () => {
   }
 });
 
-// ── Info rows ─────────────────────────────────────────────────────
 const infoRows = computed<InfoRow[]>(() => {
   if (!movie.value) return [];
   return [
@@ -142,7 +139,6 @@ const infoRows = computed<InfoRow[]>(() => {
   ];
 });
 
-// ── Schedule logic ────────────────────────────────────────────────
 const getLocalIsoDate = (date: Date) =>
   `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
 
