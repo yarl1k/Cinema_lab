@@ -84,4 +84,44 @@ deleteAllMovieSessions: async (movieId: number) => {
   getLogs: async () => {
     return handleResponse(await fetch("/api/logs"));
   },
+
+// Stats
+  getMoviesByYear: async () => {
+    return handleResponse(await fetch("/api/movies-by-year"));
+  },
+  
+  getMoviesByGenre: async () => {
+    return handleResponse(await fetch("/api/movies-by-genre"));
+  },
+
+// Booking
+  getSessionSeats: async (sessionId: number) => {
+    return handleResponse(await fetch(`/api/sessions/${sessionId}/seats`));
+  },
+
+  lockSeat: async (sessionId: number, seatId: number) => {
+    return handleResponse(
+      await fetch("/api/tickets/lock", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sessionId, seatId }),
+      })
+    );
+  },
+
+  cancelLock: async (ticketId: number) => {
+    return handleResponse(
+      await fetch(`/api/tickets/${ticketId}/lock`, { method: "DELETE" })
+    );
+  },
+
+  purchaseTickets: async (ticketIds: number[], customerName: string, customerPhone: string, customerEmail: string) => {
+    return handleResponse(
+      await fetch("/api/tickets/purchase", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ticketIds, customerName, customerPhone, customerEmail }),
+      })
+    );
+  },
 };

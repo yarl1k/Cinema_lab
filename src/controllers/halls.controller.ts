@@ -13,6 +13,7 @@ export const getHalls = async (req: Request, res: Response): Promise<void> => {
     }
 };
 
+
 export const getHallSessions = async (req: Request, res: Response): Promise<void> => {
     try {
         const hallId = parseInt(req.params.id as string);
@@ -26,6 +27,7 @@ export const getHallSessions = async (req: Request, res: Response): Promise<void
         res.status(500).json({ success: false, message: "Помилка отримання розкладу залу" });
     }
 };
+
 
 export const createHall = async (req: Request, res: Response): Promise<void> => {
     try {
@@ -63,10 +65,11 @@ export const createHall = async (req: Request, res: Response): Promise<void> => 
     }
 };
 
+
 export const toggleHallStatus = async (req: Request, res: Response): Promise<void> => {
     try {
         const hallId = parseInt(req.params.id as string);
-        const adminId = req.body?.user?.id; 
+        const adminId = req.body?.user?.id;
 
 
         const hall = await prisma.halls.findUnique({ where: { id: hallId } });
@@ -89,6 +92,7 @@ export const toggleHallStatus = async (req: Request, res: Response): Promise<voi
     }
 };
 
+
 export const deleteHall = async (req: Request, res: Response): Promise<void> => {
     try {
         const hallId = parseInt(req.params.id as string);
@@ -102,9 +106,9 @@ export const deleteHall = async (req: Request, res: Response): Promise<void> => 
             }
         });
         if (ticketsCount > 0) {
-            res.status(400).json({ 
-                success: false, 
-                message: "Не можна видалити зал, оскільки на його сеанси вже продано квитки!" 
+            res.status(400).json({
+                success: false,
+                message: "Не можна видалити зал, оскільки на його сеанси вже продано квитки!"
             });
             return;
         }
@@ -119,9 +123,9 @@ export const deleteHall = async (req: Request, res: Response): Promise<void> => 
         res.status(200).json({ success: true, message: "Зал успішно видалено" });
     } catch (error) {
         console.error("Помилка видалення залу:", error);
-        res.status(500).json({ 
-            success: false, 
-            message: "Не вдалося видалити зал. Перевірте консоль сервера." 
+        res.status(500).json({
+            success: false,
+            message: "Не вдалося видалити зал. Перевірте консоль сервера."
         });
     }
 };

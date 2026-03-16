@@ -2,9 +2,11 @@ import type { Request, Response } from "express";
 import { prisma } from "../services/database/database.js";
 import { logEvent } from "../services/logger.js";
 
+
 const getSafeAdminId = (req: Request) => {
     return req.body?.user?.id || (req as any).user?.id || null;
 };
+
 
 export const getMovieSessions = async (req: Request, res: Response): Promise<void> => {
     try {
@@ -21,6 +23,7 @@ export const getMovieSessions = async (req: Request, res: Response): Promise<voi
     }
 };
 
+
 export const createSession = async (req: Request, res: Response): Promise<void> => {
     try {
         const adminId = getSafeAdminId(req);
@@ -35,6 +38,7 @@ export const createSession = async (req: Request, res: Response): Promise<void> 
         res.status(500).json({ success: false, message: "Помилка створення сеансу" });
     }
 };
+
 
 export const updateSession = async (req: Request, res: Response): Promise<void> => {
     try {
@@ -55,10 +59,11 @@ export const updateSession = async (req: Request, res: Response): Promise<void> 
     }
 };
 
+
 export const createSessionBatch = async (req: Request, res: Response): Promise<void> => {
     try {
         const adminId = getSafeAdminId(req);
-        const { sessions } = req.body; 
+        const { sessions } = req.body;
 
         if (!sessions || sessions.length === 0) {
             res.status(400).json({ success: false, message: "Немає сеансів для збереження" });
@@ -68,7 +73,7 @@ export const createSessionBatch = async (req: Request, res: Response): Promise<v
         const formattedSessions = sessions.map((s: any) => ({
             movieId: Number(s.movieId),
             hallId: Number(s.hallId),
-            startTime: new Date(s.startTime) 
+            startTime: new Date(s.startTime)
         }));
 
         const result = await prisma.sessions.createMany({
@@ -76,13 +81,14 @@ export const createSessionBatch = async (req: Request, res: Response): Promise<v
         });
 
         await logEvent("CREATE_SESSION_BATCH", adminId, "Sessions", undefined);
-        
+
         res.status(201).json({ success: true, message: `Успішно згенеровано ${result.count} сеансів` });
     } catch (error) {
         console.error(error);
         res.status(500).json({ success: false, message: "Помилка масового створення" });
     }
 };
+
 
 export const deleteSession = async (req: Request, res: Response): Promise<void> => {
     try {
@@ -108,13 +114,14 @@ export const deleteSession = async (req: Request, res: Response): Promise<void> 
         if (adminId) {
             await logEvent("DELETE_SESSION", adminId, "Sessions", sessionId);
         }
-        
+
         res.status(200).json({ success: true, message: "Сеанс видалено" });
     } catch (error) {
         console.error("Помилка видалення сеансу:", error);
         res.status(500).json({ success: false, message: "Не вдалося видалити сеанс" });
     }
 };
+
 
 export const deleteAllMovieSessions = async (req: Request, res: Response): Promise<void> => {
     try {

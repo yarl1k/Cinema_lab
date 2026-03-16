@@ -1,20 +1,71 @@
-@import url('./movies.css');
-@import url('./layout.css');
-@import url('./movies-details.css'); 
-@import url('./admin.css'); 
+@import "tailwindcss";
 
-:root {
-    --text: #f1eeef;
-    --background: #060404;
-    --primary: #d33131;
-    --secondary: #c24400;
-    --accent: #e6a519;
+@plugin "daisyui" {
+  themes: false;
 }
-body {
+
+/* ─── Design Tokens (Cinema palette) ────────────────────────────── */
+:root {
+  --background: #060404;
+  --primary:    #d33131;
+  --secondary:  #c24400;
+  --accent:     #e6a519;
+  --text:       #f1eeef;
+}
+
+/* ─── Tailwind v4 Custom Theme ───────────────────────────────────── */
+@theme {
+  --color-primary:     #d33131;
+  --color-secondary:   #c24400;
+  --color-accent:      #e6a519;
+  --color-background:  #060404;
+  --color-cinema-text: #f1eeef;
+
+  --font-sans: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* ─── Base Reset ─────────────────────────────────────────────────── */
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
     background-color: var(--background);
     color: var(--text);
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-family: var(--font-sans);
     margin: 0;
     padding: 0;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  *,
+  *::before,
+  *::after {
     box-sizing: border-box;
+  }
+
+  a {
+    color: inherit;
+  }
+}
+
+/* ─── Global Animation ───────────────────────────────────────────── */
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(20px); scale: 0.98; }
+  to   { opacity: 1; transform: translateY(0);    scale: 1;    }
+}
+
+/* ─── Custom Scrollbar ───────────────────────────────────────────── */
+::-webkit-scrollbar       { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #444; border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: #666; }
+
+/* ─── Input autofill override ────────────────────────────────────── */
+input:-webkit-autofill,
+select:-webkit-autofill,
+textarea:-webkit-autofill {
+  -webkit-box-shadow: 0 0 0 1000px #111 inset;
+  -webkit-text-fill-color: var(--text);
 }

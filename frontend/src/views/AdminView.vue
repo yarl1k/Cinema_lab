@@ -1,299 +1,265 @@
 <template>
-  <div class="admin-container">
-    <h1>Панель Адміністратора</h1>
-
-    <div class="admin-tabs">
-      <button :class="{ active: activeTab === 'movies' }" @click="activeTab = 'movies'">🎬 Фільми</button>
-      <button :class="{ active: activeTab === 'halls' }" @click="activeTab = 'halls'">🏢 Зали</button>
-      <button :class="{ active: activeTab === 'logs' }" @click="activeTab = 'logs'">📜 Журнал подій</button>
-    </div>
-
-    <div v-if="activeTab === 'movies'" class="tab-content">
-      <div class="header-action">
-        <h2>Керування фільмами</h2>
-        <button class="btn-success" @click="openModal()">+ Додати фільм</button> 
+  <div
+    class="max-w-[1200px] mx-auto my-10 px-5 pb-10"
+    role="main"
+    aria-label="Панель адміністратора"
+  >
+    <header class="mb-8 flex items-center gap-4 border-b border-white/10 pb-6">
+      <div class="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center text-xl" aria-hidden="true">⚙️</div>
+      <div>
+        <h1 class="text-2xl font-bold text-cinema-text m-0 leading-tight">Панель адміністратора</h1>
+        <p class="text-white/40 text-sm m-0 mt-0.5">Управління фільмами, залами та журнал подій</p>
       </div>
-      <table class="admin-table">
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Назва</th>
-            <th>Режисер</th>
-            <th>Тривалість</th>
-            <th>Дії</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="movie in movies" :key="movie.id">
-            <td>{{ movie.id }}</td>
-            <td><strong>{{ movie.title }}</strong></td>
-            <td>{{ movie.director || '-' }}</td>
-            <td>{{ movie.duration ? `${movie.duration} хв` : '-' }}</td>
-            <td class="actions">
-              <button class="btn-edit" @click="openModal(movie)">Редаг.</button>
-              <button class="btn-danger" @click="deleteMovie(movie.id)">Видалити</button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+    </header>
+
+    <div
+      class="flex gap-1 mb-8 bg-[#111] p-1 rounded-xl w-fit"
+      role="tablist"
+      aria-label="Розділи адміністрування"
+    >
+      <button
+        v-for="tab in tabs"
+        :key="tab.id"
+        role="tab"
+        type="button"
+        :aria-selected="activeTab === tab.id"
+        :aria-controls="`admin-panel-${tab.id}`"
+        :id="`admin-tab-${tab.id}`"
+        :class="[
+          'px-5 py-2.5 rounded-lg text-sm font-semibold transition-all duration-200 cursor-pointer border-0',
+          activeTab === tab.id
+            ? 'bg-[#1e1e1e] text-cinema-text shadow-sm ring-1 ring-white/10'
+            : 'bg-transparent text-white/40 hover:text-white/70'
+        ]"
+        @click="activeTab = tab.id"
+      >
+        <span class="mr-2" aria-hidden="true">{{ tab.icon }}</span>{{ tab.label }}
+      </button>
     </div>
 
-    <div v-if="activeTab === 'halls'" class="tab-content">
-      <div class="header-action"><h2>Керування залами</h2></div>
-      <div class="add-session-box" style="margin-bottom: 20px;">
-        <h4>Додати новий зал</h4>
-        <div class="session-form">
-          <div class="input-group">
-            <label class="input-label">Назва (напр. "Зал 1" або "IMAX")</label>
-            <input v-model="newHall.name" type="text" class="modal-input" placeholder="Зал 1" />
-          </div>
-          <div class="input-group">
-            <label class="input-label">Кількість рядів</label>
-            <input v-model="newHall.rows" type="number" class="modal-input" placeholder="10" />
-          </div>
-          <div class="input-group">
-            <label class="input-label">Місць в ряду</label>
-            <input v-model="newHall.seatsPerRow" type="number" class="modal-input" placeholder="15" />
-          </div>
-          <button class="btn-success" @click="createHall" style="height: 44px; margin-top: 24px;">Створити</button>
+    <!-- ── MOVIES TAB ───────────────────────────────────────────── -->
+    <div
+      v-show="activeTab === 'movies'"
+      id="admin-panel-movies"
+      role="tabpanel"
+      aria-labelledby="admin-tab-movies"
+    >
+      <div class="flex items-center justify-between mb-5">
+        <div>
+          <h2 class="text-lg font-bold text-cinema-text m-0">Керування фільмами</h2>
+          <p class="text-white/40 text-sm m-0">{{ movies.length }} фільмів у базі</p>
         </div>
+        <button
+          type="button"
+          class="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-semibold
+                 bg-green-600 text-white border-0 cursor-pointer transition-colors
+                 hover:bg-green-700
+                 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-500"
+          @click="openModal()"
+        >
+          <span aria-hidden="true">＋</span> Додати фільм
+        </button>
       </div>
 
-      <table class="admin-table">
-        <thead>
-          <tr>
-            <th>ID</th><th>Назва залу</th><th>Рядів</th><th>Місць в ряду</th><th>Загалом</th><th>Статус</th><th>Дії</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="hall in halls" :key="hall.id">
-            <td>{{ hall.id }}</td><td><strong>{{ hall.name }}</strong></td><td>{{ hall.rows }}</td>
-            <td>{{ hall.seatsPerRow }}</td><td>{{ hall.rows * hall.seatsPerRow }}</td>
-            <td>
-              <span :class="['status-badge', hall.isActive ? 'active' : 'inactive']">
-                {{ hall.isActive ? 'Активний' : 'Вимкнений' }}
-              </span>
-            </td>
-            <td class="actions">
-              <button class="btn-warning" @click="toggleHallStatus(hall.id)">
+      <AppAdminTable :columns="['ID', 'Назва', 'Режисер', 'Тривалість', 'Дії']" caption="Список фільмів">
+        <tr
+          v-for="movie in movies"
+          :key="movie.id"
+          class="border-b border-white/5 transition-colors hover:bg-white/[0.025] group"
+        >
+          <td class="px-4 py-3 text-white/40 text-sm tabular-nums">{{ movie.id }}</td>
+          <td class="px-4 py-3 font-semibold">{{ movie.title }}</td>
+          <td class="px-4 py-3 text-white/60">{{ movie.director || '—' }}</td>
+          <td class="px-4 py-3 text-white/60">{{ movie.duration ? `${movie.duration} хв` : '—' }}</td>
+          <td class="px-4 py-3">
+            <div class="flex gap-2">
+              <button
+                type="button"
+                class="px-3 py-1.5 text-xs font-bold rounded-lg bg-accent text-black border-0 cursor-pointer
+                       transition-opacity hover:opacity-80
+                       focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+                :aria-label="`Редагувати фільм ${movie.title}`"
+                @click="openModal(movie)"
+              >
+                Редаг.
+              </button>
+              <button
+                type="button"
+                class="px-3 py-1.5 text-xs font-bold rounded-lg bg-primary text-white border-0 cursor-pointer
+                       transition-opacity hover:opacity-80
+                       focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                :aria-label="`Видалити фільм ${movie.title}`"
+                @click="deleteMovie(movie.id)"
+              >
+                Видалити
+              </button>
+            </div>
+          </td>
+        </tr>
+      </AppAdminTable>
+    </div>
+
+    <!-- ── HALLS TAB ────────────────────────────────────────────── -->
+    <div
+      v-show="activeTab === 'halls'"
+      id="admin-panel-halls"
+      role="tabpanel"
+      aria-labelledby="admin-tab-halls"
+    >
+      <h2 class="text-lg font-bold text-cinema-text mb-5">Керування залами</h2>
+
+      <section
+        class="bg-[#111] border border-dashed border-white/15 rounded-xl p-5 mb-6"
+        aria-label="Форма додавання нового залу"
+      >
+        <h3 class="text-accent text-base font-semibold mt-0 mb-4">Додати новий зал</h3>
+        <div class="grid gap-4" style="grid-template-columns: 1fr 2fr auto; align-items: end;">
+          <div class="flex flex-col gap-1">
+            <label class="text-[13px] font-medium text-cinema-text/80" for="hall-name">Назва залу</label>
+            <input
+              id="hall-name"
+              v-model="newHall.name"
+              type="text"
+              placeholder='Зал 1'
+              class="admin-input"
+              autocomplete="off"
+            />
+          </div>
+          <div class="flex gap-4">
+            <div class="flex flex-col gap-1 flex-1">
+              <label class="text-[13px] font-medium text-cinema-text/80" for="hall-rows">Рядів</label>
+              <input id="hall-rows" v-model="newHall.rows" type="number" placeholder="10" class="admin-input" />
+            </div>
+            <div class="flex flex-col gap-1 flex-1">
+              <label class="text-[13px] font-medium text-cinema-text/80" for="hall-seats">Місць в ряду</label>
+              <input id="hall-seats" v-model="newHall.seatsPerRow" type="number" placeholder="15" class="admin-input" />
+            </div>
+          </div>
+          <button
+            type="button"
+            class="h-[44px] px-6 rounded-lg text-sm font-semibold bg-green-600 text-white border-0
+                   cursor-pointer transition-colors hover:bg-green-700
+                   focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-500"
+            @click="createHall"
+          >
+            Створити
+          </button>
+        </div>
+      </section>
+
+      <AppAdminTable
+        :columns="['ID', 'Назва залу', 'Рядів', 'Місць у ряду', 'Разом', 'Статус', 'Дії']"
+        caption="Список залів"
+      >
+        <tr
+          v-for="hall in halls"
+          :key="hall.id"
+          class="border-b border-white/5 transition-colors hover:bg-white/[0.025]"
+        >
+          <td class="px-4 py-3 text-white/40 text-sm tabular-nums">{{ hall.id }}</td>
+          <td class="px-4 py-3 font-semibold">{{ hall.name }}</td>
+          <td class="px-4 py-3 text-white/60">{{ hall.rows }}</td>
+          <td class="px-4 py-3 text-white/60">{{ hall.seatsPerRow }}</td>
+          <td class="px-4 py-3 text-white/60">{{ hall.rows * hall.seatsPerRow }}</td>
+          <td class="px-4 py-3">
+            <AppStatusBadge :active="hall.isActive" />
+          </td>
+          <td class="px-4 py-3">
+            <div class="flex gap-2">
+              <button
+                type="button"
+                :class="[
+                  'px-3 py-1.5 text-xs font-bold rounded-lg border-0 cursor-pointer transition-opacity hover:opacity-80',
+                  'focus-visible:outline-2 focus-visible:outline-offset-2',
+                  hall.isActive
+                    ? 'bg-yellow-500 text-black focus-visible:outline-yellow-500'
+                    : 'bg-green-600 text-white focus-visible:outline-green-500'
+                ]"
+                :aria-label="`${hall.isActive ? 'Вимкнути' : 'Увімкнути'} зал ${hall.name}`"
+                @click="toggleHallStatus(hall.id)"
+              >
                 {{ hall.isActive ? 'Вимкнути' : 'Увімкнути' }}
               </button>
-              <button class="btn-danger" @click="deleteHall(hall.id)">Видалити</button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-
-    <div v-if="activeTab === 'logs'" class="tab-content">
-      <h2>Журнал подій (Аудит)</h2>
-      <table class="admin-table logs-table">
-        <thead>
-          <tr><th>Дата та Час</th><th>Подія</th><th>Сутність (ID)</th><th>Користувач (Емейл)</th></tr>
-        </thead>
-        <tbody>
-          <tr v-for="log in logs" :key="log.id">
-            <td>{{ formatTime(log.createdAt) }}</td>
-            <td><span class="log-badge">{{ log.eventType }}</span></td>
-            <td>{{ log.entityType }} ({{ log.entityId || '-' }})</td>
-            <td>{{ log.Users?.email || 'Система' }}</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-
-    <div v-if="isModalOpen" class="modal-backdrop" @click.self="closeModal">
-      <div class="modal-wide">
-        <button class="modal__close" @click="closeModal">&times;</button>
-        
-        <div class="modal-left">
-          <div class="poster-preview"><img :src="movieForm.posterUrl || 'https://placehold.co/300x450/1a1a1a/d33131?text=Немає+постера'" alt="Постер"></div>
-          <div class="input-group">
-            <label class="input-label">URL Постера</label>
-            <input v-model="movieForm.posterUrl" type="text" class="modal-input" placeholder="https://..." />
-          </div>
-          <div class="input-group">
-            <label class="input-label">URL Фону (Героя)</label>
-            <input v-model="movieForm.backgroundUrl" type="text" class="modal-input" placeholder="https://..." />
-          </div>
-        </div>
-
-        <div class="modal-right">
-          <h2>{{ isEditing ? 'Редагування фільму' : 'Додати новий фільм' }}</h2>
-          <div class="inner-tabs" v-if="isEditing">
-            <button type="button" :class="{ active: modalTab === 'details' }" @click="modalTab = 'details'">Деталі фільму</button>
-            <button type="button" :class="{ active: modalTab === 'sessions' }" @click="modalTab = 'sessions'">Розклад сеансів</button>
-          </div>
-
-          <div class="scrollable-content" v-if="modalTab === 'details' || !isEditing">
-            <form @submit.prevent="saveMovie" id="movieForm">
-              <div class="form-grid">
-                <div class="input-group">
-                  <label class="input-label">Назва фільму *</label>
-                  <input v-model="movieForm.title" type="text" class="modal-input" required />
-                </div>
-                <div class="input-group">
-                  <label class="input-label">Оригінальна назва</label>
-                  <input v-model="movieForm.originalTitle" type="text" class="modal-input" />
-                </div>
-                <div class="input-group">
-                  <label class="input-label">Режисер</label>
-                  <input v-model="movieForm.director" type="text" class="modal-input" />
-                </div>
-                <div class="input-group">
-                  <label class="input-label">У головних ролях</label>
-                  <input v-model="movieForm.cast" type="text" class="modal-input" />
-                </div>
-                <div class="input-group">
-                  <label class="input-label">Студія</label>
-                  <input v-model="movieForm.studio" type="text" class="modal-input" />
-                </div>
-                <div class="input-group">
-                  <label class="input-label">Жанри</label>
-                  <input v-model="movieForm.genres" type="text" class="modal-input" placeholder="Фантастика, Бойовик" />
-                </div>
-                
-                <div class="input-row">
-                  <div class="input-group">
-                    <label class="input-label">Тривалість (хв) *</label>
-                    <input v-model="movieForm.duration" type="number" class="modal-input" required title="Потрібно для розрахунку розкладу" />
-                  </div>
-                  <div class="input-group">
-                    <label class="input-label">Вік</label>
-                    <input v-model="movieForm.ageRestriction" type="text" class="modal-input" placeholder="16+" />
-                  </div>
-                  <div class="input-group">
-                    <label class="input-label">Рейтинг</label>
-                    <input v-model="movieForm.rating" type="number" step="0.1" class="modal-input" placeholder="7.1" />
-                  </div>
-                  <div class="input-group">
-                    <label class="input-label">Мова</label>
-                    <input v-model="movieForm.language" type="text" class="modal-input" placeholder="українська" />
-                  </div>
-                </div>
-
-                <div class="input-row">
-                  <div class="input-group">
-                    <label class="input-label">Початок прокату</label>
-                    <input v-model="movieForm.releaseDate" type="date" class="modal-input" />
-                  </div>
-                  <div class="input-group">
-                    <label class="input-label">Кінець прокату</label>
-                    <input v-model="movieForm.endDate" type="date" class="modal-input" />
-                  </div>
-                </div>
-              </div>
-
-              <div class="input-group" style="margin-top: 10px;">
-                <label class="input-label">Опис фільму</label>
-                <textarea v-model="movieForm.description" class="modal-input" rows="4" placeholder="Сюжет фільму..."></textarea>
-              </div>
-
-              <div class="modal-actions" style="margin-top: 24px;">
-                <button type="button" class="btn-secondary" @click="closeModal">Скасувати</button>
-                <button type="submit" class="btn-primary" form="movieForm">Зберегти фільм</button>
-              </div>
-            </form>
-          </div>
-
-          <div class="scrollable-content" v-if="modalTab === 'sessions' && isEditing">
-            <div class="add-session-box">
-              <h4>Генерація розкладу сеансів</h4>
-              <div class="form-grid" style="grid-template-columns: 1fr 1fr; margin-bottom: 15px;">
-                <div class="input-group" style="grid-column: 1 / -1;">
-                  <label class="input-label">Оберіть зал</label>
-                  <select v-model="batchSession.hallId" @change="fetchHallSessions(batchSession.hallId)" class="modal-input">
-                    <option disabled :value="null">Оберіть зал...</option>
-                    <option v-for="hall in halls.filter(h => h.isActive)" :key="hall.id" :value="hall.id">
-                      {{ hall.name }} ({{ hall.rows * hall.seatsPerRow }} місць)
-                    </option>
-                  </select>
-                </div>
-                
-                <div class="input-group">
-                  <label class="input-label">З якого числа (ДД.ММ.РРРР)</label>
-                  <input 
-                    type="text" 
-                    :value="batchSession.startDate" 
-                    @input="handleDateInput($event, 'startDate')"
-                    class="modal-input" 
-                    placeholder="01.01.2026" 
-                    maxlength="10"
-                  />
-                </div>
-                <div class="input-group">
-                  <label class="input-label">По яке число (ДД.ММ.РРРР)</label>
-                  <input 
-                    type="text" 
-                    :value="batchSession.endDate" 
-                    @input="handleDateInput($event, 'endDate')"
-                    class="modal-input" 
-                    placeholder="14.01.2026" 
-                    maxlength="10"
-                  />
-                </div>
-              </div>
-
-              <div class="input-group" style="margin-bottom: 20px;">
-                <label class="input-label">Оберіть час сеансів на кожен день:</label>
-                <div class="time-picker">
-                  <button 
-                    v-for="time in availableTimes" 
-                    :key="time"
-                    type="button"
-                    :class="[
-                      'time-chip', 
-                      batchSession.selectedTimes.includes(time) ? 'active' : '',
-                      isTimeDisabled(time) ? 'disabled' : ''
-                    ]"
-                    :disabled="isTimeDisabled(time)"
-                    :title="isTimeDisabled(time) ? 'Зал зайнятий іншим фільмом у цей час' : ''"
-                    @click="toggleTime(time)"
-                  >
-                    {{ time }}
-                  </button>
-                </div>
-                <small v-if="!batchSession.hallId" style="color:#dc3545; margin-top:5px;">*Спочатку оберіть зал, щоб перевірити доступність часу</small>
-                <small v-else-if="!movieForm.duration" style="color:#dc3545; margin-top:5px;">*Вкажіть тривалість фільму у вкладці деталей для перевірки накладок</small>
-              </div>
-              
-              <button class="btn-success" @click="generateSessions" :disabled="!batchSession.hallId || !movieForm.duration" style="width: 100%;">Згенерувати сеанси</button>
-            </div>
-
-            <div class="divider" style="display: flex; align-items: center; justify-content: space-between;">
-              <span>Поточні сеанси цього фільму</span>
-              
-              <button 
-                v-if="currentMovieSessions.length > 0" 
-                @click="removeAllSessions" 
-                class="btn-danger" 
-                style="padding: 4px 12px; font-size: 0.8rem; background: #dc3545; border: none; cursor: pointer; border-radius: 4px;"
+              <button
+                type="button"
+                class="px-3 py-1.5 text-xs font-bold rounded-lg bg-primary text-white border-0 cursor-pointer
+                       transition-opacity hover:opacity-80
+                       focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                :aria-label="`Видалити зал ${hall.name}`"
+                @click="deleteHall(hall.id)"
               >
-                🗑 Видалити всі
+                Видалити
               </button>
             </div>
-            
-            <table class="admin-table">
-              <thead>
-                <tr><th>ID</th><th>Зал</th><th>Дата та Час</th><th>Дії</th></tr>
-              </thead>
-              <tbody>
-                <tr v-for="session in currentMovieSessions" :key="session.id">
-                  <td>{{ session.id }}</td>
-                  <td>{{ session.Halls?.name || `Зал ${session.hallId}` }}</td>
-                  <td>{{ formatTime(session.startTime) }}</td>
-                  <td><button class="btn-danger" style="padding: 4px 8px;" @click="removeSession(session.id)">✕</button></td>
-                </tr>
-                <tr v-if="currentMovieSessions.length === 0">
-                  <td colspan="4" style="text-align: center; color: #888;">Сеансів ще немає</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-
-        </div>
-      </div>
+          </td>
+        </tr>
+      </AppAdminTable>
     </div>
+
+    <!-- ── LOGS TAB ──────────────────────────────────────────────── -->
+    <div
+      v-show="activeTab === 'logs'"
+      id="admin-panel-logs"
+      role="tabpanel"
+      aria-labelledby="admin-tab-logs"
+    >
+      <div class="mb-5">
+        <h2 class="text-lg font-bold text-cinema-text m-0">Журнал подій (Аудит)</h2>
+        <p class="text-white/40 text-sm m-0">{{ logs.length }} записів</p>
+      </div>
+
+      <AppAdminTable
+        :columns="['Дата та Час', 'Подія', 'Сутність (ID)', 'Користувач']"
+        caption="Журнал аудиту системи"
+      >
+        <tr
+          v-for="log in logs"
+          :key="log.id"
+          class="border-b border-white/5 transition-colors hover:bg-white/[0.025]"
+        >
+          <td class="px-4 py-3 text-white/60 text-sm tabular-nums">{{ formatTime(log.createdAt) }}</td>
+          <td class="px-4 py-3">
+            <span class="inline-block bg-[#333] text-accent px-2 py-0.5 rounded text-xs font-mono">
+              {{ log.eventType }}
+            </span>
+          </td>
+          <td class="px-4 py-3 text-white/60 text-sm">{{ log.entityType }} ({{ log.entityId || '—' }})</td>
+          <td class="px-4 py-3 text-white/60 text-sm">{{ log.Users?.email || 'Система' }}</td>
+        </tr>
+      </AppAdminTable>
+    </div>
+
+    <div
+      v-show="activeTab === 'stats'"
+      id="admin-panel-stats"
+      role="tabpanel"
+      aria-labelledby="admin-tab-stats"
+    >
+      <AdminStatsTab v-if="activeTab === 'stats'" />
+    </div>
+
+    <AdminMovieModal
+      :is-open="isModalOpen"
+      :is-editing="isEditing"
+      :modal-tab="modalTab"
+      :movie-form="movieForm"
+      :halls="halls"
+      :current-movie-sessions="currentMovieSessions"
+      :batch-session="batchSession"
+      :available-times="availableTimes"
+      :is-time-disabled="isTimeDisabled"
+      @close="closeModal"
+      @save="saveMovie"
+      @update:modal-tab="modalTab = $event"
+      @update:movie-form="movieForm = $event"
+      @update:batch-session="batchSession = $event"
+      @fetch-hall-sessions="fetchHallSessions"
+      @handle-date-input="handleDateInput"
+      @toggle-time="toggleTime"
+      @generate-sessions="generateSessions"
+      @remove-session="removeSession"
+      @remove-all-sessions="removeAllSessions"
+    />
   </div>
 </template>
 
@@ -303,16 +269,27 @@ import { api } from '@/services/apiQueries';
 import type { Movie, EventLog, Hall, Session } from '@/types/types';
 import { formatToDDMMYYYY, applyDateMask, parseCustomDate, formatTime } from '@/services/dateFormating';
 import { checkTimeOverlap } from '@/services/SessionChecker';
+import AppAdminTable from '@/components/AppAdminTable.vue';
+import AppStatusBadge from '@/components/AppStatusBadge.vue';
+import AdminMovieModal from '@/components/admin/AdminMovieModal.vue';
+import AdminStatsTab from '@/components/admin/AdminStatsTab.vue';
 
-const activeTab = ref('movies');
+
+const tabs = [
+  { id: 'movies', label: 'Фільми', icon: '' },
+  { id: 'halls',  label: 'Зали',   icon: '' },
+  { id: 'logs',   label: 'Журнал', icon: '' },
+  { id: 'stats',  label: 'Статистика', icon: '' },
+] as const;
+type TabId = typeof tabs[number]['id'];
+
+const activeTab = ref<TabId>('movies');
 const movies = ref<Movie[]>([]);
 const logs = ref<EventLog[]>([]);
 const halls = ref<Hall[]>([]);
 const selectedHallSessions = ref<Session[]>([]);
 
-onMounted(async () => {
-  await loadInitialData();
-});
+onMounted(async () => { await loadInitialData(); });
 
 const loadInitialData = async () => {
   try {
@@ -353,8 +330,9 @@ const editingMovieId = ref<number | null>(null);
 const modalTab = ref('details');
 
 const movieForm = ref<Partial<Movie>>({
-  title: '', originalTitle: '', director: '', cast: '', studio: '', ageRestriction: '', language: 'українська', rating: null, 
-  genres: '', duration: null, description: '', posterUrl: '', backgroundUrl: '', releaseDate: '', endDate: ''
+  title: '', originalTitle: '', director: '', cast: '', studio: '', ageRestriction: '',
+  language: 'українська', rating: null, genres: '', duration: null, description: '',
+  posterUrl: '', backgroundUrl: '', releaseDate: '', endDate: ''
 });
 
 const currentMovieSessions = ref<Session[]>([]);
@@ -367,32 +345,26 @@ const openModal = async (movie?: Movie) => {
     isEditing.value = true;
     editingMovieId.value = movie.id;
     const relDate = movie.releaseDate ? new Date(movie.releaseDate).toISOString().split('T')[0] : '';
-    const endDt = movie.endDate ? new Date(movie.endDate).toISOString().split('T')[0] : '';
-
+    const endDt   = movie.endDate    ? new Date(movie.endDate).toISOString().split('T')[0]    : '';
     movieForm.value = { ...movie, releaseDate: relDate, endDate: endDt };
-    
-
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
-    
     const release = movie.releaseDate ? new Date(movie.releaseDate) : tomorrow;
-    
-
     const startGenDate = release > tomorrow ? release : tomorrow;
-    
-    batchSession.value = { 
-      hallId: null, 
-      startDate: formatToDDMMYYYY(startGenDate.toISOString()), 
-      endDate: formatToDDMMYYYY(movie.endDate), 
-      selectedTimes: [] 
+    batchSession.value = {
+      hallId: null,
+      startDate: formatToDDMMYYYY(startGenDate.toISOString()),
+      endDate: formatToDDMMYYYY(movie.endDate),
+      selectedTimes: [],
     };
-    
     selectedHallSessions.value = [];
     currentMovieSessions.value = await api.getMovieSessions(movie.id);
   } else {
     isEditing.value = false;
     editingMovieId.value = null;
-    movieForm.value = { title: '', originalTitle: '', director: '', cast: '', studio: '', ageRestriction: '', language: 'українська', rating: null, genres: '', duration: null, description: '', posterUrl: '', backgroundUrl: '', releaseDate: '', endDate: '' };
+    movieForm.value = { title: '', originalTitle: '', director: '', cast: '', studio: '',
+      ageRestriction: '', language: 'українська', rating: null, genres: '', duration: null,
+      description: '', posterUrl: '', backgroundUrl: '', releaseDate: '', endDate: '' };
     currentMovieSessions.value = [];
   }
   isModalOpen.value = true;
@@ -407,15 +379,13 @@ const saveMovie = async () => {
       const date = new Date(d);
       return isNaN(date.getTime()) ? null : date.toISOString();
     };
-
     const payload: Partial<Movie> = {
       ...movieForm.value,
       duration: movieForm.value.duration ? Number(movieForm.value.duration) : null,
-      rating: movieForm.value.rating ? Number(movieForm.value.rating) : null,
+      rating:   movieForm.value.rating   ? Number(movieForm.value.rating)   : null,
       releaseDate: toIso(movieForm.value.releaseDate),
-      endDate: toIso(movieForm.value.endDate),
+      endDate:     toIso(movieForm.value.endDate),
     };
-
     await api.saveMovie(payload, isEditing.value, editingMovieId.value);
     closeModal();
     await loadInitialData();
@@ -435,16 +405,7 @@ const handleDateInput = (e: Event, field: 'startDate' | 'endDate') => {
 
 const isTimeDisabled = (timeStr: string) => {
   if (!batchSession.value.hallId || !batchSession.value.startDate || !batchSession.value.endDate || !movieForm.value.duration) return false;
-  
-  return checkTimeOverlap(
-    timeStr, 
-    batchSession.value.selectedTimes, 
-    batchSession.value.startDate, 
-    batchSession.value.endDate, 
-    movieForm.value.duration, 
-    selectedHallSessions.value, 
-    editingMovieId.value
-  );
+  return checkTimeOverlap(timeStr, batchSession.value.selectedTimes, batchSession.value.startDate, batchSession.value.endDate, movieForm.value.duration, selectedHallSessions.value, editingMovieId.value);
 };
 
 const toggleTime = (time: string) => {
@@ -455,26 +416,18 @@ const toggleTime = (time: string) => {
 
 const generateSessions = async () => {
   const { hallId, startDate, endDate, selectedTimes } = batchSession.value;
-  if (!hallId || !movieForm.value.duration || !selectedTimes.length || startDate.length !== 10 || endDate.length !== 10) return alert('Заповніть всі поля генератора!');
-
+  if (!hallId || !movieForm.value.duration || !selectedTimes.length || startDate.length !== 10 || endDate.length !== 10)
+    return alert('Заповніть всі поля генератора!');
   const start = parseCustomDate(startDate);
-  const end = parseCustomDate(endDate);
+  const end   = parseCustomDate(endDate);
   if (!start || !end || isNaN(start.getTime()) || start > end) return alert('Некоректні дати!');
-
   const generatedSessions: Partial<Session>[] = [];
-  
   for (let current = new Date(start); current <= end; current.setDate(current.getDate() + 1)) {
     const datePrefix = `${current.getFullYear()}-${String(current.getMonth() + 1).padStart(2, '0')}-${String(current.getDate()).padStart(2, '0')}`;
-    selectedTimes.filter(t => !isTimeDisabled(t)).forEach(t => 
-      generatedSessions.push({
-        movieId: editingMovieId.value!,
-        hallId: Number(hallId),
-
-        startTime: new Date(`${datePrefix}T${t}:00`).toISOString()
-       })
+    selectedTimes.filter(t => !isTimeDisabled(t)).forEach(t =>
+      generatedSessions.push({ movieId: editingMovieId.value!, hallId: Number(hallId), startTime: new Date(`${datePrefix}T${t}:00`).toISOString() })
     );
   }
-
   try {
     await api.createSessionsBatch(generatedSessions);
     alert(`Згенеровано ${generatedSessions.length} сеансів!`);
@@ -497,21 +450,32 @@ const removeSession = async (sessionId: number) => {
 
 const removeAllSessions = async () => {
   if (!editingMovieId.value) return;
-  
   if (!confirm('Ви впевнені, що хочете видалити ВСІ сеанси цього фільму?')) return;
-
   try {
     await api.deleteAllMovieSessions(editingMovieId.value);
-    
     currentMovieSessions.value = [];
-    if (batchSession.value.hallId) {
-      await fetchHallSessions(batchSession.value.hallId);
-    }
-    
-    await loadInitialData(); 
+    if (batchSession.value.hallId) await fetchHallSessions(batchSession.value.hallId);
+    await loadInitialData();
     alert('Всі сеанси успішно видалено!');
-  } catch (e) { 
-    alert((e as Error).message); 
-  }
+  } catch (e) { alert((e as Error).message); }
 };
 </script>
+
+<style scoped>
+.admin-input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  font-size: 14px;
+  background: #0d0d0d;
+  color: var(--text);
+  box-sizing: border-box;
+  transition: border-color 0.2s;
+  font-family: inherit;
+}
+.admin-input:focus {
+  outline: none;
+  border-color: var(--primary);
+}
+</style>
