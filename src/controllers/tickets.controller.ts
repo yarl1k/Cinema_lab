@@ -108,7 +108,7 @@ export const lockSeat = async (req: Request, res: Response): Promise<void> => {
             }
         }
 
-        const lockedUntil = new Date(Date.now() + 10 * 60 * 1000); // 10 min
+        const lockedUntil = new Date(Date.now() + 10 * 60 * 1000);
 
         const ticket = await prisma.tickets.create({
             data: {

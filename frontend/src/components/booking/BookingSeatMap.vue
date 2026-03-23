@@ -35,7 +35,7 @@
           v-for="seat in getRowSeats(rowNum)"
           :key="seat.seatId"
           type="button"
-          :disabled="seat.status !== 'FREE'"
+          :disabled="seat.status !== 'FREE' && !isSelected(seat)"
           :class="seatClass(seat, rowNum)"
           :aria-label="`Ряд ${rowNum}, Місце ${seat.seatNumber}${seat.status !== 'FREE' ? ' (зайнято)' : ''}`"
           :title="seat.status !== 'FREE' ? 'Зайнято' : `Ряд ${rowNum}, Місце ${seat.seatNumber} — ${getSeatPrice(rowNum)} грн`"
@@ -96,7 +96,7 @@ const isSelected = (seat: SeatData) =>
   props.selectedSeats.some(s => s.seatId === seat.seatId);
 
 const toggleSeat = (seat: SeatData) => {
-  if (seat.status !== 'FREE') return;
+  if (seat.status !== 'FREE' && !isSelected(seat)) return;
   emit('toggle', seat);
 };
 

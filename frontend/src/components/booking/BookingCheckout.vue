@@ -31,38 +31,47 @@
     <section>
       <h3 class="text-cinema-text font-semibold text-base mb-4">Куди надіслати квитки</h3>
       <div class="flex flex-col gap-4">
+        <!-- Name -->
         <div class="flex flex-col gap-1">
-          <label class="text-white/50 text-xs" for="booking-name">Ім'я</label>
+          <label class="text-white/50 text-xs" for="booking-name">Ім'я <span class="text-primary">*</span></label>
           <input
             id="booking-name"
             v-model="form.name"
             type="text"
             placeholder="Ваше ім'я"
-            class="checkout-input"
+            :class="['checkout-input', touched.name && errors.name ? 'checkout-input--error' : '']"
             autocomplete="name"
+            @blur="touched.name = true"
           />
+          <span v-if="touched.name && errors.name" class="text-primary text-xs mt-0.5">{{ errors.name }}</span>
         </div>
+        <!-- Phone -->
         <div class="flex flex-col gap-1">
-          <label class="text-white/50 text-xs" for="booking-phone">Номер мобільного</label>
+          <label class="text-white/50 text-xs" for="booking-phone">Номер мобільного <span class="text-primary">*</span></label>
           <input
             id="booking-phone"
             v-model="form.phone"
             type="tel"
-            placeholder="+380 (__) ___-__-__"
-            class="checkout-input"
+            placeholder="+380XXXXXXXXX"
+            :class="['checkout-input', touched.phone && errors.phone ? 'checkout-input--error' : '']"
             autocomplete="tel"
+            @blur="touched.phone = true"
           />
+          <span v-if="touched.phone && errors.phone" class="text-primary text-xs mt-0.5">{{ errors.phone }}</span>
         </div>
+        <!-- Email -->
         <div class="flex flex-col gap-1">
-          <label class="text-white/50 text-xs" for="booking-email">Email</label>
+          <label class="text-white/50 text-xs" for="booking-email">Email <span class="text-primary">*</span></label>
           <input
             id="booking-email"
             v-model="form.email"
             type="email"
             placeholder="email@example.com"
-            class="checkout-input"
+            :class="['checkout-input', touched.email && errors.email ? 'checkout-input--error' : '']"
             autocomplete="email"
+            @blur="touched.email = true"
           />
+          <span v-if="touched.email && errors.email" class="text-primary text-xs mt-0.5">{{ errors.email }}</span>
         </div>
       </div>
     </section>
@@ -99,7 +108,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue';
+import { ref, reactive, computed, watch } from 'vue';
 
 const props = defineProps<{
   initialName?: string;
@@ -109,6 +118,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   'update:form': [form: { name: string; phone: string; email: string; termsAcceptedFirst: boolean; termsAcceptedSecond: boolean; paymentMethod: string }];
+  'update:isFormValid': [valid: boolean];
 }>();
 
 const paymentMethods = [
@@ -126,6 +136,25 @@ const form = ref({
   email: props.initialEmail || '',
 });
 
+const touched = reactive({ name: false, phone: false, email: false });
+
+const phoneRegex = /^\+380\d{9}$/;
+const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+const errors = computed(() => ({
+  name: form.value.name.trim().length < 2 ? "Введіть ім'я (мінімум 2 символи)" : '',
+  phone: !phoneRegex.test(form.value.phone) ? 'Формат: +380XXXXXXXXX' : '',
+  email: !emailRegex.test(form.value.email) ? 'Введіть коректний email' : '',
+}));
+
+const isFormValid = computed(() =>
+  !errors.value.name &&
+  !errors.value.phone &&
+  !errors.value.email &&
+  termsAcceptedFirst.value &&
+  termsAcceptedSecond.value
+);
+
 watch([form, termsAcceptedFirst, termsAcceptedSecond, selectedMethod], () => {
   emit('update:form', {
     ...form.value,
@@ -133,6 +162,7 @@ watch([form, termsAcceptedFirst, termsAcceptedSecond, selectedMethod], () => {
     paymentMethod: selectedMethod.value,
     termsAcceptedSecond: termsAcceptedSecond.value,
   });
+  emit('update:isFormValid', isFormValid.value);
 }, { deep: true, immediate: true });
 </script>
 
@@ -155,5 +185,8 @@ watch([form, termsAcceptedFirst, termsAcceptedSecond, selectedMethod], () => {
 }
 .checkout-input::placeholder {
   color: rgba(255, 255, 255, 0.25);
+}
+.checkout-input--error {
+  border-color: var(--primary) !important;
 }
 </style>

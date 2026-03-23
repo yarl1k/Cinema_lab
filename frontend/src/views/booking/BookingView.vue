@@ -40,6 +40,7 @@ const checkoutForm = ref({
 });
 
 
+const isFormValid = ref(false);
 const orderNumber = ref('');
 const purchasedTickets = ref<Array<{ row: number; seatNumber: number; price: number }>>([]);
 
@@ -222,6 +223,7 @@ const formattedTime = () => {
           <BookingCheckout
             v-else-if="step === 2"
             @update:form="handleFormUpdate"
+            @update:is-form-valid="(v: boolean) => isFormValid = v"
           />
         </div>
 
@@ -229,6 +231,7 @@ const formattedTime = () => {
           :selected-seats="selectedSeats"
           :step="step"
           :is-processing="isProcessing"
+          :is-form-valid="isFormValid"
           @remove-seat="handleRemoveSeat"
           @continue="handleContinue"
         />
