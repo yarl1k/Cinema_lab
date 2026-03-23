@@ -43,7 +43,7 @@
       </div>
       <button
         type="button"
-        :disabled="selectedSeats.length === 0 || isProcessing"
+        :disabled="selectedSeats.length === 0 || isProcessing || (step === 2 && !isFormValid)"
         class="w-full py-3.5 rounded-lg font-bold text-base border-0 cursor-pointer transition-all
                bg-primary text-cinema-text hover:bg-secondary
                disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-primary"
@@ -67,6 +67,7 @@ const props = defineProps<{
   selectedSeats: SelectedSeat[];
   step: number;
   isProcessing: boolean;
+  isFormValid: boolean;
 }>();
 
 defineEmits<{

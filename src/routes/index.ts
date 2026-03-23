@@ -32,7 +32,6 @@ router.delete('/movies/:id', deleteMovie);
 
 // --- Сеанси фільму ---
 router.get('/movies/:id/sessions', getMovieSessions);
-router.delete('/movies/:id/sessions', deleteAllMovieSessions);
 
 // --- Журнал подій ---
 router.get('/logs', getLogs);
@@ -43,7 +42,7 @@ router.post('/tickets/lock', lockSeat);
 router.delete('/tickets/:id/lock', cancelLock);
 router.post('/tickets/purchase', purchaseTicket);
 
-// --- Зали (Halls) ---
+// --- Зали ---
 router.get('/halls', getHalls);
 router.get('/halls/:id/sessions', getHallSessions);
 router.post('/halls', createHall);
@@ -54,6 +53,7 @@ router.patch('/halls/:id/toggle', toggleHallStatus);
 router.post('/sessions', createSession);
 router.put('/sessions/:id', updateSession);
 router.delete('/sessions/:id', deleteSession);
+router.delete('/movies/:id/sessions', deleteAllMovieSessions);
 router.post('/sessions/batch', createSessionBatch);
 
 // --- Статистика ---

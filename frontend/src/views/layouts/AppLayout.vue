@@ -53,7 +53,7 @@
                 active-class="sidebar-link--active"
                 @click="closeSidebar"
               >
-                <span class="text-xl" aria-hidden="true">🎬</span>
+                <span class="text-xl" aria-hidden="true"></span>
                 Афіша
               </router-link>
             </li>
@@ -64,7 +64,7 @@
                 active-class="sidebar-link--active"
                 @click="closeSidebar"
               >
-                <span class="text-xl" aria-hidden="true">⚙️</span>
+                <span class="text-xl" aria-hidden="true"></span>
                 Адмін панель
               </router-link>
             </li>
@@ -80,7 +80,7 @@
                 class="sidebar-link w-full text-left"
                 @click="closeSidebar"
               >
-                <span class="text-xl" aria-hidden="true">🔑</span>
+                <span class="text-xl" aria-hidden="true"></span>
                 Увійти
               </button>
             </li>
