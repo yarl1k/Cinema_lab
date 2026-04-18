@@ -5,7 +5,8 @@
       <p class="text-white/50 text-base">Дякуємо за ваше замовлення. Деталі незабаром будуть надіслані Вам на пошту</p>
     </div>
 
-    <div class="w-full max-w-[700px] bg-[#1e1e1e] border border-white/10 rounded-2xl overflow-hidden">
+   <div ref="printArea" class="w-full max-w-[700px] print-wrapper">
+    <div class="w-full bg-[#1e1e1e] border border-white/10 rounded-2xl overflow-hidden mb-6">
       <div class="flex justify-between items-center px-6 py-4 border-b border-white/10">
         <h2 class="text-cinema-text font-bold text-lg m-0">Деталі замовлення</h2>
         <div class="flex items-center gap-2">
@@ -55,6 +56,7 @@
           </div>
         </div>
       </div>
+     </div>
     </div>
 
     <!-- PDF Download -->
@@ -66,6 +68,7 @@
       </p>
       <button
         type="button"
+        @click="downloadPDF"
         class="inline-flex items-center gap-2 px-6 py-3 rounded-lg font-bold text-sm
                bg-primary text-cinema-text border-0 cursor-pointer transition-colors
                hover:bg-secondary
@@ -112,15 +115,17 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 import type { Movie } from '@/types/types';
+
+import { downloadTicketPDF } from '@/utils/pdf';
 
 const props = defineProps<{
   orderNumber: string;
   movie: Movie | null;
   hallName: string;
   startTime: string;
-  tickets: Array<{ row: number; seatNumber: number; price: number }>;
+  tickets: Array<{ row: number; seatNumber: number; price: number; ticketNumber?: string }>;
 }>();
 
 const formattedDate = computed(() => {
@@ -142,4 +147,23 @@ const seatsLabel = computed(() =>
 const totalPrice = computed(() =>
   props.tickets.reduce((s, t) => s + t.price, 0)
 );
+
+const downloadPDF = async () => {
+    await downloadTicketPDF(
+        'Гість',
+        props.movie?.title || 'Фільм',
+        props.startTime,
+        props.hallName,
+        props.tickets,
+        props.orderNumber
+    );
+};
 </script>
+
+<style scoped>
+.print-wrapper {
+  background-color: #111;
+  padding: 20px;
+  border-radius: 16px;
+}
+</style>

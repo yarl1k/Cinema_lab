@@ -1,24 +1,11 @@
 import type { Request, Response } from "express";
 import { prisma } from "../services/database/database.js";
 import { logEvent } from "../services/logger.js";
+import { auth } from "../lib/auth.js";
+import { sendEmail, getWelcomeGuestEmailHtml, getTicketsEmailHtml } from "../lib/email.js";
+import { isValidEmail, isValidName, isValidPhone, isValidPassword, sanitizeInput } from "../lib/validation.js";
 
-// Hardcoded
-const GUEST_USER_ID = 1;
-const getCurrentUserId = async (_req: Request): Promise<number> => {
-    await prisma.users.upsert({
-        where: { id: GUEST_USER_ID },
-        update: {},
-        create: {
-            id: GUEST_USER_ID,
-            username: 'guest',
-            email: 'guest@cinemalab.local',
-            passwordHash: 'not-a-real-hash',
-            role: 'user',
-        },
-    });
-    return GUEST_USER_ID;
-};
-
+// ── Seats ────────────────────────────────────────────────────────────
 
 export const getSessionSeats = async (req: Request, res: Response): Promise<void> => {
     try {
@@ -57,7 +44,20 @@ export const getSessionSeats = async (req: Request, res: Response): Promise<void
                 ticketId = ticket.id;
             }
 
-            return { seatId: seat.id, row: seat.row, seatNumber: seat.seatNumber, status, version, ticketId };
+            if (!seat.isAvailable) {
+                status = "UNAVAILABLE";
+            }
+
+            return {
+                seatId: seat.id,
+                row: seat.row,
+                seatNumber: seat.seatNumber,
+                status,
+                version,
+                ticketId,
+                isAvailable: seat.isAvailable,
+                unavailableReason: seat.unavailableReason
+            };
         });
 
         res.status(200).json({
@@ -79,9 +79,38 @@ export const getSessionSeats = async (req: Request, res: Response): Promise<void
 };
 
 
+// ── Lock Seat ────────────────────────────────────────────────────────
+
+/**
+ * Temporary ID for guests who haven't created an account yet.
+ */
+const GUEST_TEMP_ID = "guest-temp-lock";
+
+const ensureGuestPlaceholder = async (): Promise<void> => {
+    const exists = await prisma.user.findUnique({ where: { id: GUEST_TEMP_ID } });
+    if (!exists) {
+        await prisma.user.create({
+            data: {
+                id: GUEST_TEMP_ID,
+                name: 'Guest',
+                email: 'guest-placeholder@cinemalab.local',
+                emailVerified: false,
+                createdAt: new Date(),
+                updatedAt: new Date(),
+            },
+        });
+    }
+};
+
 export const lockSeat = async (req: Request, res: Response): Promise<void> => {
     try {
-        const userId = await getCurrentUserId(req);
+        // Use authenticated user if available, otherwise use guest placeholder
+        const userId = req.user?.id || GUEST_TEMP_ID;
+
+        if (userId === GUEST_TEMP_ID) {
+            await ensureGuestPlaceholder();
+        }
+
         const { sessionId, seatId } = req.body;
 
         const session = await prisma.sessions.findUnique({
@@ -91,6 +120,12 @@ export const lockSeat = async (req: Request, res: Response): Promise<void> => {
 
         if (!session || session.Halls.Seats.length === 0) {
             res.status(400).json({ success: false, message: "Місце не знайдено для цього сеансу" });
+            return;
+        }
+
+        const seat = session.Halls.Seats[0];
+        if (!seat.isAvailable) {
+            res.status(400).json({ success: false, message: "Місце недоступне для бронювання" });
             return;
         }
 
@@ -129,6 +164,7 @@ export const lockSeat = async (req: Request, res: Response): Promise<void> => {
 };
 
 
+// ── Cancel Lock ──────────────────────────────────────────────────────
 
 export const cancelLock = async (req: Request, res: Response): Promise<void> => {
     try {
@@ -151,19 +187,84 @@ export const cancelLock = async (req: Request, res: Response): Promise<void> => 
 };
 
 
+// ── Purchase ─────────────────────────────────────────────────────────
 
 export const purchaseTicket = async (req: Request, res: Response): Promise<void> => {
     try {
-        const { ticketIds, customerName, customerPhone, customerEmail } = req.body;
-        const userId = await getCurrentUserId(req);
+        const { ticketIds, customerName, customerPhone, customerEmail, customerPassword } = req.body;
 
         if (!ticketIds || ticketIds.length === 0) {
             res.status(400).json({ success: false, message: "Не обрано квитків" });
             return;
         }
 
+        let userId: string;
+        let isNewAccount = false;
+        let purchaseEmail = '';
+
+        // ── Determine user ───────────────────────────────────────────
+        if (req.user) {
+            userId = req.user.id;
+            purchaseEmail = req.user.email;
+        } else {
+            // Guest: validate inputs
+            const name = sanitizeInput(customerName || '');
+            const email = (customerEmail || '').trim().toLowerCase();
+            const phone = (customerPhone || '').trim();
+            const password = customerPassword || '';
+            purchaseEmail = email;
+
+            if (!isValidName(name)) {
+                res.status(400).json({ success: false, message: "Введіть коректне ім'я (2-50 символів)" });
+                return;
+            }
+            if (!isValidEmail(email)) {
+                res.status(400).json({ success: false, message: "Введіть коректний email" });
+                return;
+            }
+            if (!isValidPhone(phone)) {
+                res.status(400).json({ success: false, message: "Формат телефону: +380XXXXXXXXX" });
+                return;
+            }
+
+            const passwordCheck = isValidPassword(password);
+            if (!passwordCheck.valid) {
+                res.status(400).json({ success: false, message: passwordCheck.errors.join('. ') });
+                return;
+            }
+
+            // Check if user already exists
+            const existingUser = await prisma.user.findUnique({ where: { email } });
+
+            if (existingUser) {
+                userId = existingUser.id;
+            } else {
+                // Create new account via better-auth API
+                const newUser = await auth.api.signUpEmail({
+                    body: {
+                        name,
+                        email,
+                        password,
+                    },
+                });
+
+                if (!newUser) {
+                    res.status(500).json({ success: false, message: "Помилка створення акаунту" });
+                    return;
+                }
+
+                userId = newUser.user.id;
+                isNewAccount = true;
+            }
+        }
+
+        // ── Process purchase ─────────────────────────────────────────
         const tickets = await prisma.tickets.findMany({
-            where: { id: { in: ticketIds }, userId, status: "LOCKED" }
+            where: {
+                id: { in: ticketIds },
+                status: "LOCKED",
+                userId: { in: [userId, GUEST_TEMP_ID] },
+            }
         });
 
         if (tickets.length !== ticketIds.length) {
@@ -173,22 +274,19 @@ export const purchaseTicket = async (req: Request, res: Response): Promise<void>
 
         const orderNumber = `CL-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).slice(2, 6).toUpperCase()}`;
 
-        await prisma.tickets.updateMany({
-            where: { id: { in: ticketIds } },
-            data: {
-                status: "PURCHASED",
-                lockedUntil: null,
-            }
-        });
-
         for (const t of tickets) {
             await prisma.tickets.update({
                 where: { id: t.id },
-                data: { ticketNumber: `${orderNumber}-${t.id}` }
+                data: {
+                    userId,
+                    status: "PURCHASED",
+                    lockedUntil: null,
+                    ticketNumber: `${orderNumber}-${t.id}`,
+                },
             });
         }
 
-        await logEvent("PURCHASE_TICKETS", await getCurrentUserId(req), "Tickets", undefined);
+        await logEvent("PURCHASE_TICKETS", userId, "Tickets", undefined);
 
         const purchased = await prisma.tickets.findMany({
             where: { id: { in: ticketIds } },
@@ -198,11 +296,34 @@ export const purchaseTicket = async (req: Request, res: Response): Promise<void>
             }
         });
 
+        try {
+            if (purchased.length > 0) {
+                const customerResolvedName = req.user ? req.user.name : customerName;
+                const movieTitle = purchased[0].Sessions.Movies.title;
+                const sessionStartTime = purchased[0].Sessions.startTime.toISOString();
+                const hallName = purchased[0].Sessions.Halls.name;
+                const emailTickets = purchased.map(t => ({
+                    row: t.Seats.row,
+                    seatNumber: t.Seats.seatNumber,
+                    ticketNumber: t.ticketNumber || t.id.toString()
+                }));
+
+                await sendEmail({
+                    to: purchaseEmail,
+                    subject: `Ваші квитки на: ${movieTitle}`,
+                    html: getTicketsEmailHtml(customerResolvedName, movieTitle, sessionStartTime, hallName, emailTickets, orderNumber)
+                });
+            }
+        } catch (emailErr) {
+            console.error("Failed to send ticket email:", emailErr);
+        }
+
         res.status(200).json({
             success: true,
             data: {
                 orderNumber,
                 tickets: purchased,
+                isNewAccount,
             }
         });
     } catch (error) {

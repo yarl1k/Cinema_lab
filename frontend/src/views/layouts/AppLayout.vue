@@ -57,7 +57,7 @@
                 Афіша
               </router-link>
             </li>
-            <li>
+            <li v-if="isManagerOrHigher">
               <router-link
                 to="/admin"
                 class="sidebar-link"
@@ -68,20 +68,41 @@
                 Адмін панель
               </router-link>
             </li>
+            <li v-if="isAuthenticated">
+              <router-link
+                to="/profile"
+                class="sidebar-link"
+                active-class="sidebar-link--active"
+                @click="closeSidebar"
+              >
+                <span class="text-xl" aria-hidden="true"></span>
+                Мій профіль
+              </router-link>
+            </li>
           </ul>
 
           <div class="border-t border-white/8 my-4" />
 
           <p class="text-[11px] uppercase tracking-widest text-white/25 px-3 mb-2">Система</p>
           <ul class="list-none m-0 p-0 flex flex-col gap-1">
-            <li>
-              <button
-                type="button"
+            <li v-if="!isAuthenticated">
+              <router-link
+                to="/login"
                 class="sidebar-link w-full text-left"
                 @click="closeSidebar"
               >
                 <span class="text-xl" aria-hidden="true"></span>
                 Увійти
+              </router-link>
+            </li>
+            <li v-else>
+              <button
+                type="button"
+                class="sidebar-link w-full text-left"
+                @click="handleSignOut"
+              >
+                <span class="text-xl" aria-hidden="true"></span>
+                Вийти
               </button>
             </li>
           </ul>
@@ -132,19 +153,64 @@
         </router-link>
       </div>
 
-      <!-- Right: Login button -->
+      <!-- Right: Auth controls -->
       <div class="flex items-center gap-3">
-        <button
-          type="button"
-          class="px-4 py-2 rounded-lg text-sm font-medium
-                 bg-transparent border border-white/20 text-cinema-text
-                 transition-all cursor-pointer
-                 hover:border-cinema-text/60 hover:bg-white/5
-                 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
-          aria-label="Увійти до акаунту"
-        >
-          Увійти
-        </button>
+        <template v-if="session.isPending">
+          <span class="text-white/30 text-sm">...</span>
+        </template>
+
+        <template v-else-if="isAuthenticated">
+          <!-- Role Preview Dropdown -->
+          <div v-if="availableRoles.length > 1" class="relative group hidden sm:block delay-100">
+            <button
+              type="button"
+              class="flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-bold
+                     bg-primary/10 text-primary border border-primary/20 cursor-pointer
+                     hover:bg-primary/20 transition-colors h-full"
+            >
+              👀 Як: {{ roleLabel }}
+              <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+            </button>
+            
+            <div class="absolute right-0 top-[calc(100%+8px)] w-40 bg-[#1e1e1e] border border-white/10 rounded-lg shadow-[0_10px_30px_rgba(0,0,0,0.8)] opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-[1100] py-1">
+              <button
+                v-for="role in availableRoles" :key="role.value"
+                type="button"
+                class="w-full text-left px-4 py-2 text-sm transition-colors cursor-pointer border-0 bg-transparent"
+                :class="activeRole === role.value ? 'text-primary font-bold bg-primary/5' : 'text-white/70 hover:text-white hover:bg-white/5'"
+                @click="setPreviewRole(role.value === actualRole ? null : role.value)"
+              >
+                {{ role.label }}
+              </button>
+            </div>
+          </div>
+
+          <router-link
+            to="/profile"
+            class="flex items-center gap-2 px-3 py-2 rounded-lg text-sm
+                   bg-transparent border border-white/15 text-cinema-text
+                   transition-all cursor-pointer no-underline
+                   hover:border-cinema-text/40 hover:bg-white/5"
+          >
+            <span class="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center text-xs font-bold text-primary">
+              {{ session.data?.user?.name?.charAt(0)?.toUpperCase() || '?' }}
+            </span>
+            <span class="hidden sm:inline">{{ session.data?.user?.name }}</span>
+          </router-link>
+        </template>
+
+        <template v-else>
+          <router-link
+            to="/login"
+            class="px-4 py-2 rounded-lg text-sm font-medium
+                   bg-transparent border border-white/20 text-cinema-text
+                   transition-all cursor-pointer no-underline
+                   hover:border-cinema-text/60 hover:bg-white/5
+                   focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+          >
+            Увійти
+          </router-link>
+        </template>
       </div>
     </header>
 
@@ -156,12 +222,27 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
+import { useRouter } from 'vue-router';
+import { authClient } from '@/lib/auth-client';
+import { useActiveRole } from '@/composables/useActiveRole';
+
+const router = useRouter();
+const session = authClient.useSession();
+const { actualRole, activeRole, isManagerOrHigher, roleLabel, availableRoles, setPreviewRole } = useActiveRole();
 
 const isSidebarOpen = ref(false);
 
+const isAuthenticated = computed(() => !!session.value?.data);
+
 const toggleSidebar = () => { isSidebarOpen.value = !isSidebarOpen.value; };
 const closeSidebar  = () => { isSidebarOpen.value = false; };
+
+const handleSignOut = async () => {
+  closeSidebar();
+  await authClient.signOut();
+  router.push('/');
+};
 </script>
 
 <style scoped>

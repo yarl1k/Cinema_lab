@@ -35,7 +35,7 @@ const vipRowStart = ref(999);
 
 
 const checkoutForm = ref({
-  name: '', phone: '', email: '',
+  name: '', phone: '', email: '', password: '',
   termsAcceptedFirst: false, termsAcceptedSecond: false, paymentMethod: 'card',
 });
 
@@ -127,10 +127,11 @@ const handleContinue = async () => {
         checkoutForm.value.name,
         checkoutForm.value.phone,
         checkoutForm.value.email,
+        checkoutForm.value.password || undefined,
       );
       orderNumber.value = result.orderNumber;
-      purchasedTickets.value = selectedSeats.value.map(s => ({
-        row: s.row, seatNumber: s.seatNumber, price: s.price,
+      purchasedTickets.value = result.tickets.map((t: any) => ({
+        row: t.Seats.row, seatNumber: t.Seats.seatNumber, price: t.price, ticketNumber: t.ticketNumber || t.id.toString(),
       }));
       step.value = 3;
     } catch (err) {

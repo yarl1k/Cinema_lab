@@ -60,6 +60,8 @@ export interface SeatData {
   seatNumber: number;
   status: string;
   ticketId: number | null;
+  isAvailable?: boolean;
+  unavailableReason?: string | null;
 }
 
 export interface SelectedSeat extends SeatData {
@@ -103,6 +105,10 @@ const toggleSeat = (seat: SeatData) => {
 const seatClass = (seat: SeatData, row: number) => {
   const base = 'w-7 h-7 rounded flex items-center justify-center transition-all duration-150 cursor-pointer text-xs border-2';
   const vip = isVipRow(row);
+
+  if (seat.status === 'UNAVAILABLE' || !seat.isAvailable) {
+    return `${base} bg-red-500/10 border-red-500/30 cursor-not-allowed opacity-60 text-red-500`;
+  }
 
   if (seat.status !== 'FREE' && !isSelected(seat)) {
     return `${base} bg-white/5 border-white/10 cursor-not-allowed opacity-40`;

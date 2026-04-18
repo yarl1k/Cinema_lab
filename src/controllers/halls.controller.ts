@@ -31,7 +31,7 @@ export const getHallSessions = async (req: Request, res: Response): Promise<void
 
 export const createHall = async (req: Request, res: Response): Promise<void> => {
     try {
-        const adminId = req.body?.user?.id;
+        const adminId = req.user?.id ?? null;
         const { name, rows, seatsPerRow } = req.body;
 
         const existingHall = await prisma.halls.findFirst({
@@ -69,7 +69,7 @@ export const createHall = async (req: Request, res: Response): Promise<void> => 
 export const toggleHallStatus = async (req: Request, res: Response): Promise<void> => {
     try {
         const hallId = parseInt(req.params.id as string);
-        const adminId = req.body?.user?.id;
+        const adminId = req.user?.id ?? null;
 
 
         const hall = await prisma.halls.findUnique({ where: { id: hallId } });
@@ -96,7 +96,7 @@ export const toggleHallStatus = async (req: Request, res: Response): Promise<voi
 export const deleteHall = async (req: Request, res: Response): Promise<void> => {
     try {
         const hallId = parseInt(req.params.id as string);
-        const adminId = req.body?.user?.id;
+        const adminId = req.user?.id ?? null;
         const ticketsCount = await prisma.tickets.count({
             where: {
                 OR: [

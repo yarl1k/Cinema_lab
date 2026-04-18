@@ -3,8 +3,8 @@ import { prisma } from "../services/database/database.js";
 import { logEvent } from "../services/logger.js";
 
 
-const getSafeAdminId = (req: Request) => {
-    return req.body?.user?.id || (req as any).user?.id || null;
+const getSafeAdminId = (req: Request): string | null => {
+    return req.user?.id ?? null;
 };
 
 

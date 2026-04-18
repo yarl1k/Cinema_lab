@@ -6,7 +6,7 @@ export const getLogs = async (req: Request, res: Response): Promise<void> => {
         const logs = await prisma.eventLogs.findMany({
             take: 100,
             orderBy: { createdAt: 'desc' },
-            include: { Users: { select: { email: true, username: true } } }
+            include: { User: { select: { email: true, name: true } } }
         });
         res.status(200).json({ success: true, data: logs });
     } catch (error) {

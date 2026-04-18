@@ -2,7 +2,7 @@ import { prisma } from "./database/database.js";
 
 export const logEvent = async (
     eventType: string,
-    userId: number | null,
+    userId: string | null,
     entityType?: string,
     entityId?: number,
     metadata?: object

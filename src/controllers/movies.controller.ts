@@ -41,7 +41,7 @@ export const getMovieDetails = async (req: Request, res: Response) => {
 
 export const createMovie = async (req: Request, res: Response): Promise<void> => {
     try {
-        const adminId = req.body.user?.id;
+        const adminId = req.user?.id ?? null;
         const newMovie = await prisma.movies.create({
             data: req.body
         });
@@ -58,7 +58,7 @@ export const createMovie = async (req: Request, res: Response): Promise<void> =>
 export const updateMovie = async (req: Request, res: Response): Promise<void> => {
     try {
         const movieId = parseInt(req.params.id as string);
-        const adminId = req.body.user?.id;
+        const adminId = req.user?.id ?? null;
         const updatedMovie = await prisma.movies.update({
             where: { id: movieId },
             data: req.body
@@ -75,7 +75,7 @@ export const updateMovie = async (req: Request, res: Response): Promise<void> =>
 export const deleteMovie = async (req: Request, res: Response): Promise<void> => {
     try {
         const movieId = parseInt(req.params.id as string);
-        const adminId = req.body.user?.id;
+        const adminId = req.user?.id ?? null;
         await prisma.movies.delete({
             where: { id: movieId }
         });
