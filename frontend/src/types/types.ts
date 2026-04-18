@@ -3,12 +3,11 @@ export interface EventLog {
   eventType: string;
   entityType?: string | null;
   entityId?: number | null;
-  userId?: number | null;
-  createdAt?: string | null; 
+  userId?: string | null;
+  createdAt?: string | null;
   metadata?: string | null;
-  
 
-  Users?: User | null;
+  User?: User | null;
 }
 
 export interface Hall {
@@ -17,7 +16,6 @@ export interface Hall {
   rows: number;
   seatsPerRow: number;
   isActive: boolean;
-  
 
   Seats?: Seat[];
   Sessions?: Session[];
@@ -36,14 +34,13 @@ export interface Movie {
   ageRestriction?: string | null;
   language?: string | null;
   rating?: number | null;
-  releaseDate?: string | null; 
-  endDate?: string | null;     
+  releaseDate?: string | null;
+  endDate?: string | null;
   genres?: string | null;
   posterUrl?: string | null;
   backgroundUrl?: string | null;
   createdAt?: string | null;
   updatedAt?: string | null;
-  
 
   Sessions?: Session[];
 }
@@ -53,7 +50,8 @@ export interface Seat {
   hallId: number;
   row: number;
   seatNumber: number;
-  
+  isAvailable?: boolean;
+  unavailableReason?: string | null;
 
   Halls?: Hall;
   Tickets?: Ticket[];
@@ -63,10 +61,9 @@ export interface Session {
   id: number;
   movieId: number;
   hallId: number;
-  startTime: string; 
+  startTime: string;
   createdAt?: string | null;
   updatedAt?: string | null;
-  
 
   Halls?: Hall;
   Movies?: Movie;
@@ -76,29 +73,44 @@ export interface Session {
 export interface Ticket {
   id: number;
   ticketNumber?: string | null;
-  userId: number;
+  userId: string;
   sessionId: number;
   seatId: number;
-  status: string; 
+  status: string;
   lockedUntil?: string | null;
-  price?: number | string | null; 
+  price?: number | string | null;
   version: number;
   createdAt?: string | null;
-  
+
   Seats?: Seat;
   Sessions?: Session;
-  Users?: User;
+  User?: User;
 }
 
 export interface User {
-  id: number;
-  username: string;
+  id: string;
+  name: string;
   email: string;
+  emailVerified: boolean;
+  image?: string | null;
   role?: string | null;
+  banned?: boolean | null;
+  banReason?: string | null;
+  banExpires?: string | null;
   createdAt?: string | null;
   updatedAt?: string | null;
-  passwordHash: string; 
 
   EventLogs?: EventLog[];
   Tickets?: Ticket[];
+}
+
+export interface BuffetItem {
+  id: number;
+  name: string;
+  category: string;
+  stockQuantity: number;
+  purchasePrice: number | string;
+  sellingPrice: number | string;
+  createdAt?: string | null;
+  updatedAt?: string | null;
 }

@@ -18,7 +18,7 @@
       aria-label="Розділи адміністрування"
     >
       <button
-        v-for="tab in tabs"
+        v-for="tab in visibleTabs"
         :key="tab.id"
         role="tab"
         type="button"
@@ -171,30 +171,45 @@
                 :class="[
                   'px-3 py-1.5 text-xs font-bold rounded-lg border-0 cursor-pointer transition-opacity hover:opacity-80',
                   'focus-visible:outline-2 focus-visible:outline-offset-2',
-                  hall.isActive
-                    ? 'bg-yellow-500 text-black focus-visible:outline-yellow-500'
-                    : 'bg-green-600 text-white focus-visible:outline-green-500'
-                ]"
-                :aria-label="`${hall.isActive ? 'Вимкнути' : 'Увімкнути'} зал ${hall.name}`"
-                @click="toggleHallStatus(hall.id)"
-              >
-                {{ hall.isActive ? 'Вимкнути' : 'Увімкнути' }}
-              </button>
-              <button
-                type="button"
-                class="px-3 py-1.5 text-xs font-bold rounded-lg bg-primary text-white border-0 cursor-pointer
-                       transition-opacity hover:opacity-80
-                       focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
-                :aria-label="`Видалити зал ${hall.name}`"
-                @click="deleteHall(hall.id)"
-              >
-                Видалити
-              </button>
-            </div>
-          </td>
-        </tr>
-      </AppAdminTable>
-    </div>
+                hall.isActive
+                  ? 'bg-yellow-500 text-black focus-visible:outline-yellow-500'
+                  : 'bg-green-600 text-white focus-visible:outline-green-500'
+              ]"
+              :aria-label="`${hall.isActive ? 'Вимкнути' : 'Увімкнути'} зал ${hall.name}`"
+              @click="toggleHallStatus(hall.id)"
+            >
+              {{ hall.isActive ? 'Вимкнути' : 'Увімкнути' }}
+            </button>
+            <button
+              type="button"
+              class="px-3 py-1.5 text-xs font-bold rounded-lg bg-accent text-black border-0 cursor-pointer
+                     transition-opacity hover:opacity-80
+                     focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+              :aria-label="`Перегляд залу ${hall.name}`"
+              @click="openHallView(hall.id)"
+            >
+              Переглянути
+            </button>
+            <button
+              type="button"
+              class="px-3 py-1.5 text-xs font-bold rounded-lg bg-primary text-white border-0 cursor-pointer
+                     transition-opacity hover:opacity-80
+                     focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+              :aria-label="`Видалити зал ${hall.name}`"
+              @click="deleteHall(hall.id)"
+            >
+              Видалити
+            </button>
+          </div>
+        </td>
+      </tr>
+    </AppAdminTable>
+    <AdminHallViewModal
+      :is-open="isHallModalOpen"
+      :hall-id="viewingHallId"
+      @close="closeHallView"
+    />
+  </div>
 
     <!-- ── LOGS TAB ──────────────────────────────────────────────── -->
     <div
@@ -224,7 +239,7 @@
             </span>
           </td>
           <td class="px-4 py-3 text-white/60 text-sm">{{ log.entityType }} ({{ log.entityId || '—' }})</td>
-          <td class="px-4 py-3 text-white/60 text-sm">{{ log.Users?.email || 'Система' }}</td>
+          <td class="px-4 py-3 text-white/60 text-sm">{{ log.User?.email || 'Система' }}</td>
         </tr>
       </AppAdminTable>
     </div>
@@ -236,6 +251,36 @@
       aria-labelledby="admin-tab-stats"
     >
       <AdminStatsTab v-if="activeTab === 'stats'" />
+    </div>
+
+    <!-- ── BUFFET TAB ────────────────────────────────────────────── -->
+    <div
+      v-show="activeTab === 'buffet'"
+      id="admin-panel-buffet"
+      role="tabpanel"
+      aria-labelledby="admin-tab-buffet"
+    >
+      <AdminBuffetTab v-if="activeTab === 'buffet'" />
+    </div>
+
+    <!-- ── REPORTS TAB ───────────────────────────────────────────── -->
+    <div
+      v-show="activeTab === 'reports'"
+      id="admin-panel-reports"
+      role="tabpanel"
+      aria-labelledby="admin-tab-reports"
+    >
+      <AdminReportsTab v-if="activeTab === 'reports'" />
+    </div>
+
+    <!-- ── USERS TAB ─────────────────────────────────────────────── -->
+    <div
+      v-show="activeTab === 'users'"
+      id="admin-panel-users"
+      role="tabpanel"
+      aria-labelledby="admin-tab-users"
+    >
+      <AdminUsersTab v-if="activeTab === 'users'" />
     </div>
 
     <AdminMovieModal
@@ -264,7 +309,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import { api } from '@/services/apiQueries';
 import type { Movie, EventLog, Hall, Session } from '@/types/types';
 import { formatToDDMMYYYY, applyDateMask, parseCustomDate, formatTime } from '@/services/dateFormating';
@@ -273,21 +318,36 @@ import AppAdminTable from '@/components/AppAdminTable.vue';
 import AppStatusBadge from '@/components/AppStatusBadge.vue';
 import AdminMovieModal from '@/components/admin/AdminMovieModal.vue';
 import AdminStatsTab from '@/components/admin/AdminStatsTab.vue';
+import AdminBuffetTab from '@/components/admin/AdminBuffetTab.vue';
+import AdminReportsTab from '@/components/admin/AdminReportsTab.vue';
+import AdminUsersTab from '@/components/admin/AdminUsersTab.vue';
+import AdminHallViewModal from '@/components/admin/AdminHallViewModal.vue';
+import { useActiveRole } from '@/composables/useActiveRole';
 
+const { isAdminOrHigher } = useActiveRole();
 
 const tabs = [
-  { id: 'movies', label: 'Фільми', icon: '' },
-  { id: 'halls',  label: 'Зали',   icon: '' },
-  { id: 'logs',   label: 'Журнал', icon: '' },
-  { id: 'stats',  label: 'Статистика', icon: '' },
+  { id: 'movies',  label: 'Фільми',      icon: '' },
+  { id: 'halls',   label: 'Зали',        icon: '' },
+  { id: 'buffet',  label: 'Буфет',       icon: '' },
+  { id: 'users',   label: 'Користувачі', icon: '' },
+  { id: 'logs',    label: 'Журнал',      icon: '' },
+  { id: 'stats',   label: 'Статистика',  icon: '' },
+  { id: 'reports', label: 'Звіти',       icon: '' },
 ] as const;
 type TabId = typeof tabs[number]['id'];
+
+const visibleTabs = computed(() => {
+  return tabs.filter(tab => tab.id !== 'users' || isAdminOrHigher.value);
+});
 
 const activeTab = ref<TabId>('movies');
 const movies = ref<Movie[]>([]);
 const logs = ref<EventLog[]>([]);
 const halls = ref<Hall[]>([]);
 const selectedHallSessions = ref<Session[]>([]);
+const isHallModalOpen = ref(false);
+const viewingHallId = ref<number | null>(null);
 
 onMounted(async () => { await loadInitialData(); });
 
@@ -322,6 +382,16 @@ const deleteHall = async (id: number) => {
 const deleteMovie = async (id: number) => {
   if (!confirm('Видалити цей фільм?')) return;
   try { await api.deleteMovie(id); await loadInitialData(); } catch (e) { alert((e as Error).message); }
+};
+
+const openHallView = (id: number) => {
+  viewingHallId.value = id;
+  isHallModalOpen.value = true;
+};
+
+const closeHallView = () => {
+  isHallModalOpen.value = false;
+  viewingHallId.value = null;
 };
 
 const isModalOpen = ref(false);
