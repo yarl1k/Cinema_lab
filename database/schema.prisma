@@ -12,10 +12,10 @@ model EventLogs {
   eventType  String    @db.VarChar(100)
   entityType String?   @db.VarChar(100)
   entityId   Int?
-  userId     Int?
+  userId     String? // Змінено на String
   createdAt  DateTime? @default(now()) @db.Timestamp(6)
   metadata   String?
-  Users      Users?    @relation(fields: [userId], references: [id], onUpdate: NoAction)
+  User       User?     @relation(fields: [userId], references: [id], onUpdate: NoAction)
 }
 
 model Halls {
@@ -23,7 +23,7 @@ model Halls {
   name        String     @db.VarChar(50)
   rows        Int
   seatsPerRow Int
-  isActive    Boolean    @default(true) 
+  isActive    Boolean    @default(true)
   Seats       Seats[]
   Sessions    Sessions[]
 }
@@ -36,14 +36,14 @@ model Movies {
   duration       Int?
   originalTitle  String?    @db.VarChar(150)
   director       String?    @db.VarChar(100)
-  cast           String?    
+  cast           String?
   studio         String?    @db.VarChar(150)
-  ageRestriction String?    @db.VarChar(10) 
+  ageRestriction String?    @db.VarChar(10)
   language       String?    @default("українська") @db.VarChar(50)
-  rating         Float?     
-  releaseDate    DateTime?  @db.Date 
-  endDate        DateTime?  @db.Date 
-  genres         String?    
+  rating         Float?
+  releaseDate    DateTime?  @db.Date
+  endDate        DateTime?  @db.Date
+  genres         String?
   posterUrl      String?    @db.VarChar(255)
   backgroundUrl  String?    @db.VarChar(255)
   createdAt      DateTime?  @default(now()) @db.Timestamp(6)
@@ -52,12 +52,14 @@ model Movies {
 }
 
 model Seats {
-  id         Int       @id @default(autoincrement())
-  hallId     Int
-  row        Int
-  seatNumber Int
-  Halls      Halls     @relation(fields: [hallId], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  Tickets    Tickets[]
+  id                Int       @id @default(autoincrement())
+  hallId            Int
+  isAvailable       Boolean   @default(true)
+  unavailableReason String?
+  row               Int
+  seatNumber        Int
+  Halls             Halls     @relation(fields: [hallId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  Tickets           Tickets[]
 }
 
 model Sessions {
@@ -72,11 +74,10 @@ model Sessions {
   Tickets   Tickets[]
 }
 
-/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
 model Tickets {
   id           Int       @id @default(autoincrement())
   ticketNumber String?   @unique @db.VarChar(50)
-  userId       Int
+  userId       String // Змінено на String
   sessionId    Int
   seatId       Int
   status       String    @default("LOCKED") @db.VarChar(10)
@@ -84,22 +85,89 @@ model Tickets {
   price        Decimal?  @db.Decimal(10, 2)
   version      Int       @default(1)
   createdAt    DateTime? @default(now()) @db.Timestamp(6)
-  
-  Seats        Seats     @relation(fields: [seatId], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  Sessions     Sessions  @relation(fields: [sessionId], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  Users        Users     @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  Seats    Seats    @relation(fields: [seatId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  Sessions Sessions @relation(fields: [sessionId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  User     User     @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
   @@unique([sessionId, seatId])
 }
 
-model Users {
-  id           Int         @id @default(autoincrement())
-  username     String      @db.VarChar(50)
-  email        String      @unique @db.VarChar(50)
-  role         String?     @default("user") @db.VarChar(20)
-  createdAt    DateTime?   @default(now()) @db.Timestamp(6)
-  updatedAt    DateTime?   @default(now()) @db.Timestamp(6)
-  passwordHash String      @db.VarChar(100)
-  EventLogs    EventLogs[]
-  Tickets      Tickets[]
+model BuffetItems {
+  id            Int       @id @default(autoincrement())
+  name          String    @unique @db.VarChar(100)
+  category      String    @db.VarChar(50)
+  stockQuantity Int       @default(0)
+  purchasePrice Decimal   @db.Decimal(10, 2)
+  sellingPrice  Decimal   @db.Decimal(10, 2)
+  createdAt     DateTime? @default(now()) @db.Timestamp(6)
+  updatedAt     DateTime? @default(now()) @db.Timestamp(6)
+}
+
+// ==========================================
+// ТАБЛИЦІ ДЛЯ BETTER-AUTH
+// ==========================================
+
+model User {
+  id            String   @id @default(cuid())
+  name          String   @db.VarChar(50)
+  email         String   @unique @db.VarChar(50)
+  emailVerified Boolean  @default(false)
+  image         String?
+  createdAt     DateTime @default(now()) @db.Timestamp(6)
+  updatedAt     DateTime @updatedAt @db.Timestamp(6)
+
+  // Плагін Admin (Ролі та бани)
+  role       String?   @default("user") @db.VarChar(20)
+  banned     Boolean?
+  banReason  String?
+  banExpires DateTime?
+
+  // Зв'язки better-auth
+  sessions Session[]
+  accounts Account[]
+
+  // Твої зв'язки
+  EventLogs EventLogs[]
+  Tickets   Tickets[]
+}
+
+model Session {
+  id        String   @id
+  expiresAt DateTime
+  token     String
+  createdAt DateTime
+  updatedAt DateTime
+  ipAddress String?
+  userAgent String?
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([token])
+}
+
+model Account {
+  id                    String    @id
+  accountId             String
+  providerId            String
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime
+  updatedAt             DateTime
+}
+
+model Verification {
+  id         String    @id
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime?
+  updatedAt  DateTime?
 }
