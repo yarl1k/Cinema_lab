@@ -33,9 +33,10 @@ export const importBuffetItems = async (req: Request, res: Response): Promise<vo
         const rows = XLSX.utils.sheet_to_json<Record<string, any>>(workbook.Sheets[sheetName]);
 
         const COL = {
+            id: ["ID", "id"],
             name: ["Назва", "Name"],
             category: ["Категорія", "Category"],
-            addedQuantity: ["Кількість", "Added Quantity", "Додана кількість"],
+            quantity: ["Кількість на складі", "Stock Quantity", "Кількість", "Quantity"],
             purchasePrice: ["Ціна закупівлі", "Purchase Price"],
             sellingPrice: ["Ціна продажу", "Selling Price"],
         };
@@ -49,8 +50,11 @@ export const importBuffetItems = async (req: Request, res: Response): Promise<vo
 
         let created = 0;
         let updated = 0;
+        let deleted = 0;
         let skipped = 0;
         const errors: string[] = [];
+
+        const seenIds = new Set<number>();
 
         for (let i = 0; i < rows.length; i++) {
             const row = rows[i];
@@ -58,9 +62,11 @@ export const importBuffetItems = async (req: Request, res: Response): Promise<vo
 
             const name = String(findCol(row, COL.name) ?? "").trim();
             const category = String(findCol(row, COL.category) ?? "").trim();
-            const addedQty = Number(findCol(row, COL.addedQuantity));
-            const purchasePrice = Number(findCol(row, COL.purchasePrice));
-            const sellingPrice = Number(findCol(row, COL.sellingPrice));
+            const rawQty = findCol(row, COL.quantity);
+            const rawPurchasePrice = findCol(row, COL.purchasePrice);
+            const rawSellingPrice = findCol(row, COL.sellingPrice);
+            const rawId = findCol(row, COL.id);
+            const id = rawId ? Number(rawId) : undefined;
 
             // Validate
             if (!name) {
@@ -73,56 +79,102 @@ export const importBuffetItems = async (req: Request, res: Response): Promise<vo
                 skipped++;
                 continue;
             }
-            if (isNaN(addedQty) || addedQty < 0) {
-                errors.push(`Рядок ${rowNum}: некоректна кількість для "${name}"`);
+            if (typeof rawQty !== 'number' || isNaN(rawQty) || rawQty < 0) {
+                errors.push(`Рядок ${rowNum}: некоректна кількість для "${name}" (очікується число >= 0)`);
                 skipped++;
                 continue;
             }
-            if (isNaN(purchasePrice) || purchasePrice < 0) {
-                errors.push(`Рядок ${rowNum}: некоректна ціна закупівлі для "${name}"`);
+            if (typeof rawPurchasePrice !== 'number' || isNaN(rawPurchasePrice) || rawPurchasePrice < 0) {
+                errors.push(`Рядок ${rowNum}: некоректна ціна закупівлі для "${name}" (очікується число >= 0)`);
                 skipped++;
                 continue;
             }
-            if (isNaN(sellingPrice) || sellingPrice < 0) {
-                errors.push(`Рядок ${rowNum}: некоректна ціна продажу для "${name}"`);
+            if (typeof rawSellingPrice !== 'number' || isNaN(rawSellingPrice) || rawSellingPrice < 0) {
+                errors.push(`Рядок ${rowNum}: некоректна ціна продажу для "${name}" (очікується число >= 0)`);
                 skipped++;
                 continue;
             }
 
-            const existing = await prisma.buffetItems.findUnique({ where: { name } });
-
-            if (existing) {
-                await prisma.buffetItems.update({
-                    where: { name },
-                    data: {
-                        category,
-                        stockQuantity: existing.stockQuantity + addedQty,
-                        purchasePrice,
-                        sellingPrice,
-                        updatedAt: new Date(),
-                    },
-                });
-                updated++;
-            } else {
-                await prisma.buffetItems.create({
-                    data: {
-                        name,
-                        category,
-                        stockQuantity: addedQty,
-                        purchasePrice,
-                        sellingPrice,
-                    },
-                });
-                created++;
+            try {
+                if (id && !isNaN(id)) {
+                    const existing = await prisma.buffetItems.findUnique({ where: { id } });
+                    if (existing) {
+                        await prisma.buffetItems.update({
+                            where: { id },
+                            data: {
+                                name, // Allowing name to be updated!
+                                category,
+                                stockQuantity: rawQty,
+                                purchasePrice: rawPurchasePrice,
+                                sellingPrice: rawSellingPrice,
+                                updatedAt: new Date(),
+                            },
+                        });
+                        seenIds.add(id);
+                        updated++;
+                    } else {
+                        const newItem = await prisma.buffetItems.create({
+                            data: {
+                                name,
+                                category,
+                                stockQuantity: rawQty,
+                                purchasePrice: rawPurchasePrice,
+                                sellingPrice: rawSellingPrice,
+                            },
+                        });
+                        seenIds.add(newItem.id);
+                        created++;
+                    }
+                } else {
+                    const existingByName = await prisma.buffetItems.findUnique({ where: { name } });
+                    if (existingByName) {
+                        await prisma.buffetItems.update({
+                            where: { id: existingByName.id },
+                            data: {
+                                category,
+                                stockQuantity: rawQty,
+                                purchasePrice: rawPurchasePrice,
+                                sellingPrice: rawSellingPrice,
+                                updatedAt: new Date(),
+                            },
+                        });
+                        seenIds.add(existingByName.id);
+                        updated++;
+                    } else {
+                        const newItem = await prisma.buffetItems.create({
+                            data: {
+                                name,
+                                category,
+                                stockQuantity: rawQty,
+                                purchasePrice: rawPurchasePrice,
+                                sellingPrice: rawSellingPrice,
+                            },
+                        });
+                        seenIds.add(newItem.id);
+                        created++;
+                    }
+                }
+            } catch (err: any) {
+                errors.push(`Рядок ${rowNum}: помилка збереження "${name}"`);
+                skipped++;
             }
         }
 
-        await logEvent("IMPORT_BUFFET", null, "BuffetItems", undefined, { created, updated, skipped });
+        const allItems = await prisma.buffetItems.findMany({ select: { id: true } });
+        const unusedIds = allItems.map((i) => i.id).filter((itemId) => !seenIds.has(itemId));
+        if (unusedIds.length > 0) {
+            await prisma.buffetItems.deleteMany({
+                where: { id: { in: unusedIds } },
+            });
+            deleted = unusedIds.length;
+        }
+
+        await logEvent("IMPORT_BUFFET", null, "BuffetItems", undefined, { created, updated, deleted, skipped });
 
         res.status(200).json({
             success: true,
-            data: { created, updated, skipped, errors },
-            message: `Імпорт завершено: створено ${created}, оновлено ${updated}, пропущено ${skipped}`,
+            data: { created, updated, deleted, skipped, errors },
+            message: `Імпорт завершено: створено ${created}, оновлено ${updated}, видалено ${deleted}, пропущено ${skipped}`,
         });
     } catch (error) {
         console.error("importBuffetItems error:", error);

@@ -12,7 +12,7 @@ model EventLogs {
   eventType  String    @db.VarChar(100)
   entityType String?   @db.VarChar(100)
   entityId   Int?
-  userId     String? // Змінено на String
+  userId     String?
   createdAt  DateTime? @default(now()) @db.Timestamp(6)
   metadata   String?
   User       User?     @relation(fields: [userId], references: [id], onUpdate: NoAction)
