@@ -145,7 +145,7 @@ const seatsLabel = computed(() =>
 );
 
 const totalPrice = computed(() =>
-  props.tickets.reduce((s, t) => s + t.price, 0)
+  props.tickets.reduce((s, t) => s + Number(t.price), 0)
 );
 
 const downloadPDF = async () => {
