@@ -1,0 +1,47 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Subscriber {
+  id        String   @id
+  email     String   @unique @db.VarChar(50)
+  createdAt DateTime @default(now()) @db.Timestamp(6)
+
+  Settings    NotificationSetting?
+  Preferences GenrePreference[]
+  Logs        EmailLog[]
+}
+
+model NotificationSetting {
+  id               Int        @id @default(autoincrement())
+  subscriberId     String     @unique
+  receiveDigests   Boolean    @default(true)
+  receiveReminders Boolean    @default(true)
+  
+  Subscriber       Subscriber @relation(fields: [subscriberId], references: [id], onDelete: Cascade)
+}
+
+model GenrePreference {
+  id           Int        @id @default(autoincrement())
+  subscriberId String
+  genre        String     @db.VarChar(50)
+  
+  Subscriber   Subscriber @relation(fields: [subscriberId], references: [id], onDelete: Cascade)
+
+  @@unique([subscriberId, genre])
+}
+
+model EmailLog {
+  id           Int        @id @default(autoincrement())
+  subscriberId String
+  eventType    String     @db.VarChar(50)
+  status       String     @default("SENT") @db.VarChar(20)
+  sentAt       DateTime   @default(now()) @db.Timestamp(6)
+  
+  Subscriber   Subscriber @relation(fields: [subscriberId], references: [id], onDelete: Cascade)
+}

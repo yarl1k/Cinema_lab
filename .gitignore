@@ -3,6 +3,7 @@ node_modules
 .env
 
 /src/generated/prisma
+/notifier/src/generated/prisma
 # Node modules
 node_modules/
 
