@@ -31,9 +31,7 @@ declare global {
     }
 }
 
-/**
- * Helper: extract session from request headers.
- */
+
 const getSessionFromRequest = async (req: Request) => {
     const session = await auth.api.getSession({
         headers: fromNodeHeaders(req.headers),
@@ -41,9 +39,7 @@ const getSessionFromRequest = async (req: Request) => {
     return session;
 };
 
-/**
- * requireAuth — blocks request if not authenticated (401).
- */
+
 export const requireAuth = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
         const session = await getSessionFromRequest(req);
@@ -59,9 +55,7 @@ export const requireAuth = async (req: Request, res: Response, next: NextFunctio
     }
 };
 
-/**
- * requireRole — checks that user has a specific role (403).
- */
+
 export const requireRole = (...roles: string[]) => {
     return async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
@@ -85,9 +79,7 @@ export const requireRole = (...roles: string[]) => {
     };
 };
 
-/**
- * optionalAuth — attaches user if authenticated, otherwise continues.
- */
+
 export const optionalAuth = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
         const session = await getSessionFromRequest(req);

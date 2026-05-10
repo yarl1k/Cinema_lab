@@ -21,7 +21,6 @@ export const useActiveRole = () => {
 
   const activeRole = computed(() => {
     if (overrideRole.value && ['user', 'manager', 'admin', 'superadmin'].includes(overrideRole.value)) {
-      // Don't let users elevate themselves via preview, only lower
       const actualLevel = ROLE_HIERARCHY[actualRole.value] || 1;
       const requestedLevel = ROLE_HIERARCHY[overrideRole.value] || 1;
       if (requestedLevel <= actualLevel) {

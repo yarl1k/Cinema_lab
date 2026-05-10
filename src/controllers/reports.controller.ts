@@ -12,7 +12,6 @@ const __dirname = path.dirname(__filename);
 // ─── GET /api/reports/managerial ────────────────────────────────────
 export const getManagerialReport = async (_req: Request, res: Response): Promise<void> => {
     try {
-        // 1. Ticket revenue (PURCHASED only)
         const ticketAgg = await prisma.tickets.aggregate({
             _sum: { price: true },
             _count: { id: true },

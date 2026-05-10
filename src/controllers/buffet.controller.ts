@@ -68,7 +68,6 @@ export const importBuffetItems = async (req: Request, res: Response): Promise<vo
             const rawId = findCol(row, COL.id);
             const id = rawId ? Number(rawId) : undefined;
 
-            // Validate
             if (!name) {
                 errors.push(`Рядок ${rowNum}: пропущено назву`);
                 skipped++;
@@ -102,7 +101,7 @@ export const importBuffetItems = async (req: Request, res: Response): Promise<vo
                         await prisma.buffetItems.update({
                             where: { id },
                             data: {
-                                name, // Allowing name to be updated!
+                                name, 
                                 category,
                                 stockQuantity: rawQty,
                                 purchasePrice: rawPurchasePrice,
@@ -199,7 +198,7 @@ export const exportBuffetItems = async (_req: Request, res: Response): Promise<v
         const workbook = XLSX.utils.book_new();
         const worksheet = XLSX.utils.json_to_sheet(data);
 
-        // Auto-size columns
+        
         const colWidths = Object.keys(data[0] || {}).map((key) => ({
             wch: Math.max(key.length, ...data.map((r) => String((r as any)[key]).length)) + 2,
         }));

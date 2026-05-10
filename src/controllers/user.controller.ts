@@ -1,9 +1,7 @@
 import type { Request, Response } from "express";
 import { prisma } from "../services/database/database.js";
 
-/**
- * GET /my/tickets — returns all purchased tickets for the authenticated user.
- */
+
 export const getMyTickets = async (req: Request, res: Response): Promise<void> => {
     try {
         const userId = req.user?.id;
@@ -28,9 +26,6 @@ export const getMyTickets = async (req: Request, res: Response): Promise<void> =
     }
 };
 
-/**
- * GET /my/profile — returns authenticated user's profile data.
- */
 export const getMyProfile = async (req: Request, res: Response): Promise<void> => {
     try {
         const userId = req.user?.id;

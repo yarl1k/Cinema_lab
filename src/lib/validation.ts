@@ -1,15 +1,9 @@
-// ── Regex Patterns ───────────────────────────────────────────────────
-
-/** RFC 5322–style email validation */
 const EMAIL_REGEX = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
 
-/** Ukrainian phone: +380XXXXXXXXX */
 const PHONE_REGEX = /^\+380\d{9}$/;
 
-/** Name: 2-50 chars, letters (incl. Cyrillic), spaces, hyphens, apostrophes */
 const NAME_REGEX = /^[a-zA-Zа-яА-ЯіІїЇєЄґҐ''\- ]{2,50}$/;
 
-/** At least 8 chars, max 128, one uppercase, one lowercase, one digit */
 const PASSWORD_MIN = 8;
 const PASSWORD_MAX = 128;
 const HAS_UPPERCASE = /[A-Z]/;

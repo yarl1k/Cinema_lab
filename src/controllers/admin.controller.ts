@@ -10,9 +10,7 @@ const ROLE_HIERARCHY: Record<string, number> = {
 };
 const getRoleLevel = (role?: string | null) => ROLE_HIERARCHY[role || "user"] || 1;
 
-/**
- * GET /api/admin/users — list all users (except the guest placeholder).
- */
+
 export const getUsers = async (_req: Request, res: Response): Promise<void> => {
     try {
         const users = await prisma.user.findMany({
@@ -36,9 +34,7 @@ export const getUsers = async (_req: Request, res: Response): Promise<void> => {
     }
 };
 
-/**
- * PUT /api/admin/users/:id — update user data (name, email).
- */
+
 export const updateUser = async (req: Request, res: Response): Promise<void> => {
     try {
         const userId = req.params.id as string;
@@ -59,7 +55,6 @@ export const updateUser = async (req: Request, res: Response): Promise<void> => 
             return;
         }
 
-        // Check email uniqueness if changed
         if (email && email !== user.email) {
             const existing = await prisma.user.findUnique({ where: { email } });
             if (existing) {
@@ -93,10 +88,7 @@ export const updateUser = async (req: Request, res: Response): Promise<void> => 
     }
 };
 
-/**
- * PATCH /api/admin/users/:id/role — change user role.
- * Promoting to "admin" requires `adminCode` in the request body.
- */
+
 export const changeUserRole = async (req: Request, res: Response): Promise<void> => {
     try {
         const userId = req.params.id as string;
@@ -118,25 +110,21 @@ export const changeUserRole = async (req: Request, res: Response): Promise<void>
         const targetLevel = getRoleLevel(user.role);
         const newLevel = getRoleLevel(role);
 
-        // Hierarchy rule 1: You cannot change the role of someone whose level is >= yours
         if (callerLevel <= targetLevel && callerLevel < 4) {
             res.status(403).json({ success: false, message: "Ви не можете змінювати роль користувача з рівною або вищою роллю" });
             return;
         }
 
-        // Hierarchy rule 2: You cannot grant a role higher than your own
         if (newLevel > callerLevel) {
             res.status(403).json({ success: false, message: "Ви не можете призначити роль, вищу за вашу власну" });
             return;
         }
 
-        // Prevent self-demotion unless superadmin wants to demote themselves
         if (userId === req.user?.id) {
             res.status(400).json({ success: false, message: "Ви не можете змінити свою власну роль з цієї панелі" });
             return;
         }
 
-        // Admin code verification for promotion to admin or superadmin
         if (newLevel >= 3) {
             const serverAdminCode = process.env.ADMIN_CODE;
             if (!serverAdminCode) {

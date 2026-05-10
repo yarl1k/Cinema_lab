@@ -7,7 +7,6 @@ export const downloadTicketPDF = async (
   orderNumber: string
 ) => {
   try {
-    // @ts-ignore
     const md = await import('html2pdf.js');
     const html2pdf = md.default || md;
 
@@ -67,7 +66,6 @@ export const downloadTicketPDF = async (
       jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
     };
     
-    // Use a detached DOM node so we don't pollute the document and avoid Tailwind Oklab issues
     const tempDiv = document.createElement('div');
     tempDiv.innerHTML = html;
     html2pdf().from(tempDiv).set(opt).save();
