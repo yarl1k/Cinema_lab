@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"></head>
+<body style="margin:0;padding:0;background:#060404;font-family:'Segoe UI',Tahoma,sans-serif;">
+  <div style="max-width:520px;margin:40px auto;padding:32px;background:#111;border-radius:16px;border:1px solid rgba(255,255,255,0.08);">
+    
+    <div style="text-align:center;margin-bottom:24px;">
+      <span style="font-size:24px;font-weight:900;color:#d33131;letter-spacing:3px;">CINEMALAB</span>
+    </div>
+    
+    <h2 style="color:#f1eeef;margin:0 0 8px;font-size:20px;">Свіжі релізи для вас, {{userName}}! 🎬</h2>
+    <p style="color:rgba(241,238,239,0.6);font-size:14px;line-height:1.6;margin:0 0 24px;">
+      Ми підібрали нові фільми в прокаті, які відповідають вашим улюбленим жанрам. Ось що нового на великих екранах цього тижня:
+    </p>
+    
+    {{moviesListHtml}}
+    
+    <div style="text-align:center;margin-top:32px;margin-bottom:24px;">
+      <a href="{{scheduleUrl}}" style="display:inline-block;padding:12px 32px;background:#d33131;color:#f1eeef;text-decoration:none;border-radius:8px;font-weight:600;font-size:14px;">
+        Дивитись весь розклад
+      </a>
+    </div>
+
+    <div style="border-top:1px solid rgba(255,255,255,0.08);padding-top:24px;margin-top:24px;">
+        <p style="color:rgba(241,238,239,0.3);font-size:12px;text-align:center;margin:0 0 8px;line-height:1.5;">
+          Ви отримали цей лист, оскільки підписані на сповіщення про нові фільми за вашими улюбленими жанрами.
+        </p>
+        <p style="color:rgba(241,238,239,0.3);font-size:12px;text-align:center;margin:0;">
+          Змінити улюблені жанри або відписатися від розсилки можна в 
+          <a href="{{settingsUrl}}" style="color:#d33131;text-decoration:none;">налаштуваннях профілю</a>.
+        </p>
+    </div>
+
+  </div>
+</body>
+</html>
