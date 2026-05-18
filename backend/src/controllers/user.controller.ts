@@ -1,5 +1,6 @@
 import type { Request, Response } from "express";
 import { prisma } from "../services/database/database.js";
+import { notifierQueue } from "../services/queue.js";
 
 
 export const getMyTickets = async (req: Request, res: Response): Promise<void> => {
@@ -56,5 +57,29 @@ export const getMyProfile = async (req: Request, res: Response): Promise<void> =
     } catch (error) {
         console.error("getMyProfile error:", error);
         res.status(500).json({ success: false, message: "Помилка отримання профілю" });
+    }
+};
+
+export const updateUserNotifications = async (req: Request, res: Response): Promise<void> => {
+    try {
+        const userId = req.user?.id;
+        if (!userId) {
+            res.status(401).json({ success: false, message: "Необхідна авторизація" });
+            return;
+        }
+
+        const { receiveDigests, receiveReminders, favoriteGenres } = req.body;
+
+        await notifierQueue.add("user.preferences.updated", {
+            userId,
+            receiveDigests,
+            receiveReminders,
+            favoriteGenres,
+        });
+
+        res.status(200).json({ success: true, message: "Налаштування оновлено" });
+    } catch (error) {
+        console.error("updateUserNotifications error:", error);
+        res.status(500).json({ success: false, message: "Помилка оновлення налаштувань" });
     }
 };

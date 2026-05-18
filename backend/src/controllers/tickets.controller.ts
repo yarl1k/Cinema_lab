@@ -2,10 +2,11 @@ import type { Request, Response } from "express";
 import { prisma } from "../services/database/database.js";
 import { logEvent } from "../services/logger.js";
 import { auth } from "../lib/auth.js";
+import { notifierQueue } from "../services/queue.js";
 import { sendEmail, getWelcomeGuestEmailHtml, getTicketsEmailHtml } from "../lib/email.js";
 import { isValidEmail, isValidName, isValidPhone, isValidPassword, sanitizeInput } from "../lib/validation.js";
 
-// ── Seats ────────────────────────────────────────────────────────────
+// ── Seats
 
 export const getSessionSeats = async (req: Request, res: Response): Promise<void> => {
     try {
@@ -79,11 +80,8 @@ export const getSessionSeats = async (req: Request, res: Response): Promise<void
 };
 
 
-// ── Lock Seat ────────────────────────────────────────────────────────
+// ── Lock Seat
 
-/**
- * Temporary ID for guests who haven't created an account yet.
- */
 const GUEST_TEMP_ID = "guest-temp-lock";
 
 const ensureGuestPlaceholder = async (): Promise<void> => {
@@ -104,7 +102,6 @@ const ensureGuestPlaceholder = async (): Promise<void> => {
 
 export const lockSeat = async (req: Request, res: Response): Promise<void> => {
     try {
-        // Use authenticated user if available, otherwise use guest placeholder
         const userId = req.user?.id || GUEST_TEMP_ID;
 
         if (userId === GUEST_TEMP_ID) {
@@ -164,7 +161,7 @@ export const lockSeat = async (req: Request, res: Response): Promise<void> => {
 };
 
 
-// ── Cancel Lock ──────────────────────────────────────────────────────
+// ── Cancel Lock
 
 export const cancelLock = async (req: Request, res: Response): Promise<void> => {
     try {
@@ -187,7 +184,7 @@ export const cancelLock = async (req: Request, res: Response): Promise<void> => 
 };
 
 
-// ── Purchase ─────────────────────────────────────────────────────────
+// ── Purchase
 
 export const purchaseTicket = async (req: Request, res: Response): Promise<void> => {
     try {
@@ -202,12 +199,11 @@ export const purchaseTicket = async (req: Request, res: Response): Promise<void>
         let isNewAccount = false;
         let purchaseEmail = '';
 
-        // ── Determine user ───────────────────────────────────────────
+        // ── Determine user
         if (req.user) {
             userId = req.user.id;
             purchaseEmail = req.user.email;
         } else {
-            // Guest: validate inputs
             const name = sanitizeInput(customerName || '');
             const email = (customerEmail || '').trim().toLowerCase();
             const phone = (customerPhone || '').trim();
@@ -233,13 +229,11 @@ export const purchaseTicket = async (req: Request, res: Response): Promise<void>
                 return;
             }
 
-            // Check if user already exists
             const existingUser = await prisma.user.findUnique({ where: { email } });
 
             if (existingUser) {
                 userId = existingUser.id;
             } else {
-                // Create new account via better-auth API
                 const newUser = await auth.api.signUpEmail({
                     body: {
                         name,
@@ -258,7 +252,7 @@ export const purchaseTicket = async (req: Request, res: Response): Promise<void>
             }
         }
 
-        // ── Process purchase ─────────────────────────────────────────
+        // ── Process purchase
         const tickets = await prisma.tickets.findMany({
             where: {
                 id: { in: ticketIds },
@@ -313,9 +307,24 @@ export const purchaseTicket = async (req: Request, res: Response): Promise<void>
                     subject: `Ваші квитки на: ${movieTitle}`,
                     html: getTicketsEmailHtml(customerResolvedName, movieTitle, sessionStartTime, hallName, emailTickets, orderNumber)
                 });
+
+                const startTime = new Date(sessionStartTime);
+                const reminderTime = new Date(startTime.getTime() - 24 * 60 * 60 * 1000);
+                const delay = reminderTime.getTime() - Date.now();
+                
+                if (delay > 0) {
+                    await notifierQueue.add("session.reminder", {
+                        userId,
+                        email: purchaseEmail,
+                        sessionId: purchased[0].Sessions.id,
+                        movieTitle,
+                        startTime: sessionStartTime,
+                        hallName
+                    }, { delay });
+                }
             }
         } catch (emailErr) {
-            console.error("Failed to send ticket email:", emailErr);
+            console.error("Failed to send ticket email or schedule reminder:", emailErr);
         }
 
         res.status(200).json({

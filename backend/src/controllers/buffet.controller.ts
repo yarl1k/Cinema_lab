@@ -3,7 +3,7 @@ import { prisma } from "../services/database/database.js";
 import { logEvent } from "../services/logger.js";
 import * as XLSX from "xlsx";
 
-// ─── GET /api/buffet ────────────────────────────────────────────────
+// ─── GET /api/buffet
 export const getBuffetItems = async (_req: Request, res: Response): Promise<void> => {
     try {
         const items = await prisma.buffetItems.findMany({ orderBy: { id: "asc" } });
@@ -14,7 +14,7 @@ export const getBuffetItems = async (_req: Request, res: Response): Promise<void
     }
 };
 
-// ─── POST /api/buffet/import ────────────────────────────────────────
+// ─── POST /api/buffet/import
 export const importBuffetItems = async (req: Request, res: Response): Promise<void> => {
     try {
         const file = (req as any).file as Express.Multer.File | undefined;
@@ -181,7 +181,7 @@ export const importBuffetItems = async (req: Request, res: Response): Promise<vo
     }
 };
 
-// ─── GET /api/buffet/export ─────────────────────────────────────────
+// ─── GET /api/buffet/export 
 export const exportBuffetItems = async (_req: Request, res: Response): Promise<void> => {
     try {
         const items = await prisma.buffetItems.findMany({ orderBy: { id: "asc" } });

@@ -166,7 +166,7 @@ export const changeUserRole = async (req: Request, res: Response): Promise<void>
     }
 };
 
-// ── Seat Availability ────────────────────────────────────────────────
+// ── Seat Availability
 export const getHallSeats = async (req: Request, res: Response): Promise<void> => {
     try {
         const hallId = parseInt(req.params.hallId as string);

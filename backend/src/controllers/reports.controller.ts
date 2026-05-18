@@ -9,7 +9,7 @@ import Docxtemplater from "docxtemplater";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// ─── GET /api/reports/managerial ────────────────────────────────────
+// ─── GET /api/reports/managerial
 export const getManagerialReport = async (_req: Request, res: Response): Promise<void> => {
     try {
         const ticketAgg = await prisma.tickets.aggregate({

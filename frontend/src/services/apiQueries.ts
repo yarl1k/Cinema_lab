@@ -156,6 +156,16 @@ export const api = {
     return handleResponse(await fetch("/api/my/tickets"));
   },
 
+  updateUserNotifications: async (data: { receiveDigests: boolean; receiveReminders: boolean; favoriteGenres: string[] }) => {
+    return handleResponse(
+      await fetch("/api/my/notifications", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      })
+    );
+  },
+
   getMyProfile: async () => {
     return handleResponse(await fetch("/api/my/profile"));
   },

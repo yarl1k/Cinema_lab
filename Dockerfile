@@ -7,56 +7,38 @@ FROM node:${NODE_VERSION}-alpine as base
 WORKDIR /usr/src/app
 RUN --mount=type=cache,target=/root/.npm \
     npm install -g pnpm@${PNPM_VERSION}
+RUN apk add --no-cache openssl
 
 ################################################################################
-FROM base as deps
+FROM base as build
+WORKDIR /usr/src/app
 
-COPY package.json pnpm-lock.yaml ./
-RUN --mount=type=cache,target=/root/.local/share/pnpm/store \
-    pnpm install --prod --frozen-lockfile
-
-################################################################################
-FROM deps as build
+COPY . .
 
 RUN --mount=type=cache,target=/root/.local/share/pnpm/store \
     pnpm install --frozen-lockfile
 
-COPY . .
-RUN pnpm run build
-
-# Build frontend
-WORKDIR /usr/src/app/frontend
-RUN pnpm install --frozen-lockfile
-RUN pnpm run build
-
-WORKDIR /usr/src/app
+RUN pnpm --filter ./frontend run build
+RUN pnpm --filter ./backend run build
 
 ################################################################################
 FROM base as final
-
 ENV NODE_ENV=production
-
-# Встановлюємо OpenSSL для Prisma (потрібно під root)
+WORKDIR /usr/src/app/backend
 USER root
-RUN apk add --no-cache openssl
 
-# Копіюємо все з правильними правами для користувача node
-# ДОДАНО: --chown=node:node передає права на файли користувачу node
-COPY --chown=node:node package.json .
+COPY --chown=node:node --from=build /usr/src/app/backend/package.json .
+COPY --chown=node:node --from=build /usr/src/app/backend/prisma.config.ts .
 
-# >>> ДОДАЙ ОСЬ ЦЕЙ РЯДОК: <<<
-COPY --chown=node:node prisma.config.ts .
-
-COPY --chown=node:node --from=deps /usr/src/app/node_modules ./node_modules
-COPY --chown=node:node --from=build /usr/src/app/dist ./dist
+COPY --chown=node:node --from=build /usr/src/app/node_modules /usr/src/app/node_modules
+COPY --chown=node:node --from=build /usr/src/app/backend/node_modules /usr/src/app/backend/node_modules
+COPY --chown=node:node --from=build /usr/src/app/backend/dist ./dist
 COPY --chown=node:node --from=build /usr/src/app/frontend/dist ./frontend/dist
-COPY --chown=node:node --from=build /usr/src/app/templates ./templates
-COPY --chown=node:node --from=build /usr/src/app/database ./database
+COPY --chown=node:node --from=build /usr/src/app/backend/templates ./templates
+COPY --chown=node:node --from=build /usr/src/app/backend/database ./database
 
-# Перемикаємось на безпечного користувача ТІЛЬКИ ПІСЛЯ копіювання файлів
+RUN chown -R node:node /usr/src/app
+
 USER node
-
 EXPOSE 3000
-
-# Оскільки в prisma.config.ts вже вказано шлях до схеми, ми можемо повернути чисту команду:
-CMD ["sh", "-c", "pnpm exec prisma migrate deploy && pnpm start"]
+CMD ["sh", "-c", "npx prisma migrate deploy && pnpm start"]

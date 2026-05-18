@@ -2,7 +2,8 @@ import express from 'express';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import { prisma } from './services/prisma_setup/database.js';
-import './services/redis/queue.service.js'; 
+import './jobs/email.processing.js'; 
+import './jobs/cron.scheduler.js';
 import mainRouter from "./routers/index.js";
 
 const app = express();

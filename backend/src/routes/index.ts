@@ -6,6 +6,7 @@ import {
   createMovie,
   deleteMovie,
   updateMovie,
+  getDigestFeed,
 } from '../controllers/movies.controller.js';
 
 import {
@@ -23,7 +24,7 @@ import { getHalls, createHall, deleteHall, toggleHallStatus, getHallSessions } f
 import { getMoviesByGenre, getMoviesByYear } from '../controllers/charts-stats.controller.js';
 import { getBuffetItems, importBuffetItems, exportBuffetItems } from '../controllers/buffet.controller.js';
 import { getManagerialReport } from '../controllers/reports.controller.js';
-import { getMyTickets, getMyProfile } from '../controllers/user.controller.js';
+import { getMyTickets, getMyProfile, updateUserNotifications } from '../controllers/user.controller.js';
 import { requireAuth, requireRole, optionalAuth } from '../middleware/auth.middleware.js';
 import { getUsers, updateUser, changeUserRole, getHallSeats, toggleSeatAvailability } from '../controllers/admin.controller.js';
 
@@ -34,6 +35,7 @@ const upload = multer({ storage: multer.memoryStorage() });
 
 // --- Фільми (публічні) ---
 router.get('/movies', getMoviesIndex);
+router.get('/movies/digest-feed', getDigestFeed);
 router.get('/movies/:id', getMovieDetails);
 
 // --- Фільми ---
@@ -82,6 +84,7 @@ router.get('/reports/managerial', requireRole('manager', 'admin', 'superadmin'),
 // --- Користувач (авторизовані) ---
 router.get('/my/tickets', requireAuth, getMyTickets);
 router.get('/my/profile', requireAuth, getMyProfile);
+router.patch('/my/notifications', requireAuth, updateUserNotifications);
 
 // --- Адмін (Користувачі та Місця) ---
 router.get('/admin/users', requireRole('admin', 'superadmin'), getUsers);

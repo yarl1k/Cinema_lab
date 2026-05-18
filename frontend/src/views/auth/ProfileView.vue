@@ -53,18 +53,51 @@ const toggleOrder = (orderNumber: string) => {
   openOrders.value = next;
 };
 
-// Change password
 const currentPassword = ref('');
 const newPassword = ref('');
 const pwError = ref('');
 const pwSuccess = ref('');
 const pwLoading = ref(false);
 
+const receiveDigests = ref(true);
+const favoriteGenres = ref<string[]>([]);
+const notifLoading = ref(false);
+const notifSuccess = ref('');
+const notifError = ref('');
+
+const allGenres = ['Драма', 'Комедія', 'Бойовик', 'Фантастика', 'Трилер', 'Жахи', 'Мультфільм', 'Пригоди'];
+
+const toggleGenre = (genre: string) => {
+  if (favoriteGenres.value.includes(genre)) {
+    favoriteGenres.value = favoriteGenres.value.filter(g => g !== genre);
+  } else {
+    favoriteGenres.value.push(genre);
+  }
+};
+
+const handleSavePreferences = async () => {
+  notifLoading.value = true;
+  notifSuccess.value = '';
+  notifError.value = '';
+  
+  try {
+    await api.updateUserNotifications({
+      receiveDigests: receiveDigests.value,
+      receiveReminders: true,
+      favoriteGenres: favoriteGenres.value,
+    });
+    notifSuccess.value = 'Налаштування збережено';
+  } catch (e: any) {
+    notifError.value = e.message || 'Помилка збереження налаштувань';
+  } finally {
+    notifLoading.value = false;
+  }
+};
+
 onMounted(async () => {
   try {
     tickets.value = await api.getMyTickets();
   } catch {
-    // No tickets or not authorized
   } finally {
     isLoadingTickets.value = false;
   }
@@ -222,6 +255,58 @@ const handleDownloadOrderPdf = async (order: any) => {
                 </div>
               </div>
             </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Notifications -->
+      <section class="mb-8">
+        <h2 class="text-lg font-bold text-cinema-text mb-4">🔔 Налаштування сповіщень</h2>
+        <div class="bg-[#111] border border-white/8 rounded-xl p-5">
+          <div v-if="notifError" class="bg-primary/10 border border-primary/30 text-primary text-sm rounded-lg px-4 py-2 mb-3">
+            {{ notifError }}
+          </div>
+          <div v-if="notifSuccess" class="bg-green-500/10 border border-green-500/30 text-green-400 text-sm rounded-lg px-4 py-2 mb-3">
+            {{ notifSuccess }}
+          </div>
+          
+          <div class="flex flex-col gap-6">
+            <!-- Digest Tumbler -->
+            <label class="flex items-center justify-between cursor-pointer">
+              <div>
+                <p class="font-bold text-white/90 text-sm m-0 mb-1">Тижневий дайджест</p>
+                <p class="text-white/40 text-xs m-0">Отримуйте новинки кіно щотижня</p>
+              </div>
+              <div class="relative">
+                <input type="checkbox" v-model="receiveDigests" class="sr-only peer" />
+                <div class="w-11 h-6 bg-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-white/30 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary transition-colors"></div>
+              </div>
+            </label>
+
+            <!-- Genres Multi-select -->
+            <div>
+              <p class="font-bold text-white/90 text-sm m-0 mb-2">Улюблені жанри</p>
+              <div class="flex flex-wrap gap-2">
+                <button
+                  v-for="genre in allGenres"
+                  :key="genre"
+                  type="button"
+                  @click="toggleGenre(genre)"
+                  :class="[
+                    'px-3 py-1.5 rounded-lg text-xs font-medium transition-colors border cursor-pointer',
+                    favoriteGenres.includes(genre)
+                      ? 'bg-primary/20 border-primary text-primary'
+                      : 'bg-transparent border-white/10 text-white/60 hover:border-white/30'
+                  ]"
+                >
+                  {{ genre }}
+                </button>
+              </div>
+            </div>
+
+            <button type="button" @click="handleSavePreferences" :disabled="notifLoading" class="profile-btn mt-2">
+              {{ notifLoading ? 'Збереження...' : 'Зберегти налаштування' }}
+            </button>
           </div>
         </div>
       </section>

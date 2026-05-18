@@ -3,6 +3,7 @@ import { prismaAdapter } from 'better-auth/adapters/prisma';
 import { admin } from 'better-auth/plugins';
 import { prisma } from '../services/database/database.js';
 import { sendEmail, getVerificationEmailHtml, getResetPasswordEmailHtml } from './email.js';
+import { notifierQueue } from '../services/queue.js';
 
 export const auth = betterAuth({
     basePath: '/api/auth',
@@ -42,6 +43,18 @@ export const auth = betterAuth({
         cookieCache: {
             enabled: true,
             maxAge: 5 * 60, // 5 min cache
+        },
+    },
+    databaseHooks: {
+        user: {
+            create: {
+                after: async (user) => {
+                    await notifierQueue.add("user.created", {
+                        id: user.id,
+                        email: user.email,
+                    });
+                },
+            },
         },
     },
 

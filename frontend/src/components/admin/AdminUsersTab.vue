@@ -41,16 +41,15 @@ const handleRoleChange = async (user: User, event: Event) => {
     const newLevel = getLevel(newRole);
     
     let adminCode = '';
-    // Request admin code if elevating to a highly privileged level (>= 3)
     if (newLevel >= 3) {
         adminCode = prompt(`Введіть секретний код адміністратора для призначення ролі "${ROLE_LABELS[newRole as keyof typeof ROLE_LABELS]}":`) || '';
         if (!adminCode) {
-            target.value = oldRole || 'user'; // Revert UI
+            target.value = oldRole || 'user'; 
             return;
         }
     } else {
         if (!confirm(`Змінити роль користувача ${user.name} на "${ROLE_LABELS[newRole as keyof typeof ROLE_LABELS]}"?`)) {
-            target.value = oldRole || 'user'; // Revert UI
+            target.value = oldRole || 'user';
             return;
         }
     }

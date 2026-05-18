@@ -87,3 +87,27 @@ export const deleteMovie = async (req: Request, res: Response): Promise<void> =>
         res.status(500).json({ success: false, message: "Помилка видалення фільму" });
     }
 };
+
+export const getDigestFeed = async (req: Request, res: Response): Promise<void> => {
+    try {
+        const activeMovies = await prisma.movies.findMany({
+            where: {
+                endDate: {
+                    gte: new Date()
+                }
+            },
+            select: {
+                id: true,
+                title: true,
+                posterUrl: true,
+                genres: true,
+                rating: true,
+            }
+        });
+
+        res.status(200).json({ success: true, data: activeMovies });
+    } catch (error) {
+        console.error("getDigestFeed error:", error);
+        res.status(500).json({ success: false, message: "Помилка отримання стрічки" });
+    }
+};
