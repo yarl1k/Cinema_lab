@@ -3,7 +3,6 @@ import { prisma } from "../services/database/database.js";
 import { logEvent } from "../services/logger.js";
 import { auth } from "../lib/auth.js";
 import { notifierQueue } from "../services/queue.js";
-import { sendEmail, getWelcomeGuestEmailHtml, getTicketsEmailHtml } from "../lib/email.js";
 import { isValidEmail, isValidName, isValidPhone, isValidPassword, sanitizeInput } from "../lib/validation.js";
 
 // ── Seats
@@ -302,26 +301,35 @@ export const purchaseTicket = async (req: Request, res: Response): Promise<void>
                     ticketNumber: t.ticketNumber || t.id.toString()
                 }));
 
-                await sendEmail({
-                    to: purchaseEmail,
-                    subject: `Ваші квитки на: ${movieTitle}`,
-                    html: getTicketsEmailHtml(customerResolvedName, movieTitle, sessionStartTime, hallName, emailTickets, orderNumber)
+                await notifierQueue.add("email.tickets", {
+                    email: purchaseEmail,
+                    userName: customerResolvedName,
+                    movieTitle,
+                    startTime: sessionStartTime,
+                    hallName,
+                    tickets: emailTickets,
+                    orderNumber,
                 });
 
                 const startTime = new Date(sessionStartTime);
                 const reminderTime = new Date(startTime.getTime() - 24 * 60 * 60 * 1000);
                 const delay = reminderTime.getTime() - Date.now();
                 
+                const reminderPayload = {
+                    userId,
+                    email: purchaseEmail,
+                    sessionId: purchased[0].Sessions.id,
+                    movieTitle,
+                    startTime: sessionStartTime, 
+                    hallName
+                };
+
                 if (delay > 0) {
-                    await notifierQueue.add("session.reminder", {
-                        userId,
-                        email: purchaseEmail,
-                        sessionId: purchased[0].Sessions.id,
-                        movieTitle,
-                        startTime: sessionStartTime,
-                        hallName
-                    }, { delay });
+                    await notifierQueue.add("session.reminder", reminderPayload, { delay });
+                } else if (startTime.getTime() > Date.now()) {
+                    await notifierQueue.add("session.reminder", reminderPayload);
                 }
+                
             }
         } catch (emailErr) {
             console.error("Failed to send ticket email or schedule reminder:", emailErr);

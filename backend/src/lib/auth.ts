@@ -2,7 +2,6 @@ import { betterAuth } from 'better-auth';
 import { prismaAdapter } from 'better-auth/adapters/prisma';
 import { admin } from 'better-auth/plugins';
 import { prisma } from '../services/database/database.js';
-import { sendEmail, getVerificationEmailHtml, getResetPasswordEmailHtml } from './email.js';
 import { notifierQueue } from '../services/queue.js';
 
 export const auth = betterAuth({
@@ -18,10 +17,10 @@ export const auth = betterAuth({
         enabled: true,
         requireEmailVerification: true,
         sendResetPassword: async ({ user, url }) => {
-            void sendEmail({
-                to: user.email,
-                subject: 'Скидання паролю — CinemaLab',
-                html: getResetPasswordEmailHtml(url, user.name),
+            await notifierQueue.add("email.reset-password", {
+                email: user.email,
+                url,
+                userName: user.name,
             });
         },
     },
@@ -29,10 +28,10 @@ export const auth = betterAuth({
     emailVerification: {
         sendOnSignUp: true,
         sendVerificationEmail: async ({ user, url }) => {
-            void sendEmail({
-                to: user.email,
-                subject: 'Підтвердіть email — CinemaLab',
-                html: getVerificationEmailHtml(url, user.name),
+            await notifierQueue.add("email.verification", {
+                email: user.email,
+                url,
+                userName: user.name,
             });
         },
     },

@@ -97,7 +97,13 @@ const handleSavePreferences = async () => {
 onMounted(async () => {
   try {
     tickets.value = await api.getMyTickets();
-  } catch {
+    const profile = await api.getMyProfile();
+    if (profile && profile.preferences) {
+      receiveDigests.value = profile.preferences.receiveDigests;
+      favoriteGenres.value = profile.preferences.favoriteGenres || [];
+    }
+  } catch (error) {
+    console.error("Failed to load profile data:", error);
   } finally {
     isLoadingTickets.value = false;
   }

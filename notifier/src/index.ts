@@ -2,6 +2,7 @@ import express from 'express';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import { prisma } from './services/prisma_setup/database.js';
+import { preloadTemplates } from './services/templates/template-loader.js';
 import './jobs/email.processing.js'; 
 import './jobs/cron.scheduler.js';
 import mainRouter from "./routers/index.js";
@@ -31,6 +32,8 @@ const startServer = async () => {
     try {
         await prisma.$connect();
         console.log(' Notifier Database connected successfully.');
+
+        preloadTemplates();
 
         app.listen(PORT, () => {
             console.log(`Notifier Worker started on port ${PORT}`);

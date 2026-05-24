@@ -1,6 +1,9 @@
 import type { Request, Response } from "express";
 import { prisma } from "../services/database/database.js";
 import { notifierQueue } from "../services/queue.js";
+import axios from "axios";
+
+const NOTIFIER_URL = process.env.NOTIFIER_URL || "http://notifier:3000/api";
 
 
 export const getMyTickets = async (req: Request, res: Response): Promise<void> => {
@@ -53,7 +56,17 @@ export const getMyProfile = async (req: Request, res: Response): Promise<void> =
             return;
         }
 
-        res.status(200).json({ success: true, data: user });
+        let preferences = { receiveDigests: true, receiveReminders: true, favoriteGenres: [] as string[] };
+        try {
+            const prefRes = await axios.get(`${NOTIFIER_URL}/preferences/${userId}`);
+            if (prefRes.data?.success) {
+                preferences = prefRes.data.data;
+            }
+        } catch (e) {
+            console.error("Could not fetch preferences for user", userId);
+        }
+
+        res.status(200).json({ success: true, data: { ...user, preferences } });
     } catch (error) {
         console.error("getMyProfile error:", error);
         res.status(500).json({ success: false, message: "Помилка отримання профілю" });

@@ -65,6 +65,7 @@ services:
     environment:
       - MICROSERVICE_DATABASE_URL=postgresql://yar4ik:${POSTGRES_PASSWORD}@notifier-db:5432/cinema_notifier?schema=public
       - REDIS_URL=redis://redis:6379
+      - MAIN_API_URL=http://server:3000/api
     depends_on:
       notifier-db:
         condition: service_healthy

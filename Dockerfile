@@ -13,11 +13,16 @@ RUN apk add --no-cache openssl
 FROM base as build
 WORKDIR /usr/src/app
 
-COPY . .
+COPY pnpm-workspace.yaml pnpm-lock.yaml ./
+COPY backend/package.json ./backend/
+COPY frontend/package.json ./frontend/
+COPY notifier/package.json ./notifier/
 
 RUN --mount=type=cache,target=/root/.local/share/pnpm/store \
     pnpm install --frozen-lockfile
+COPY . .
 
+# 4. Збираємо
 RUN pnpm --filter ./frontend run build
 RUN pnpm --filter ./backend run build
 

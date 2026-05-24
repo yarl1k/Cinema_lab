@@ -6,7 +6,6 @@ async function syncExistingUsers() {
     console.log('Починаємо синхронізацію користувачів...');
 
     try {
-        // 1. Дістаємо ВСІХ юзерів з основної БД
         const users = await prisma.user.findMany({
             select: {
                 id: true,
@@ -16,7 +15,6 @@ async function syncExistingUsers() {
 
         console.log(`Знайдено ${users.length} користувачів. Відправляємо в чергу...`);
 
-        // 2. Кидаємо кожного юзера в Redis як подію 'user.created'
         for (const user of users) {
             await notifierQueue.add('user.created', {
                 id: user.id,
@@ -28,7 +26,6 @@ async function syncExistingUsers() {
     } catch (error) {
         console.error('Помилка синхронізації:', error);
     } finally {
-        // Закриваємо з'єднання, щоб скрипт завершив роботу
         await prisma.$disconnect();
         await notifierQueue.close();
         process.exit(0);
